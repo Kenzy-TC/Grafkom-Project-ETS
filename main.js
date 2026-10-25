@@ -892,6 +892,9 @@ function steer(direction) {
   game.targetX = next * 2.45;
   if (game.selectedGate) game.selectedGate = null;
 }
+document.querySelector('#steer-left').addEventListener('click', () => steer(-1));
+document.querySelector('#steer-right').addEventListener('click', () => steer(1));
+
 window.addEventListener('keydown', (event) => {
   if (['ArrowLeft', 'ArrowRight', ' '].includes(event.key)) event.preventDefault();
   if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') steer(-1);

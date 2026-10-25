@@ -81,7 +81,11 @@
 
       <section class="bottom-hud" aria-label="Kontrol dan petunjuk">
         <div class="hint-chip"><span class="hint-symbol">✳</span><span id="hint-text">DODGE THE SHOCK PYLONS</span></div>
-        <div class="steer-panel"><div class="steer-key"><kbd>A</kbd><kbd>←</kbd><span>LEFT</span></div><div class="steer-center"><i></i><i></i><i></i><span>STEER YOUR FORMATION</span></div><div class="steer-key"><kbd>D</kbd><kbd>→</kbd><span>RIGHT</span></div></div>
+        <div class="steer-panel" aria-label="Kontrol arah pasukan">
+          <button class="steer-key steer-button" id="steer-left" type="button" aria-label="Gerak ke kiri"><kbd>A</kbd><kbd>&larr;</kbd><span>LEFT</span></button>
+          <div class="steer-center"><i></i><i></i><i></i><span>AUTO-RUN // STEER</span></div>
+          <button class="steer-key steer-button" id="steer-right" type="button" aria-label="Gerak ke kanan"><kbd>D</kbd><kbd>&rarr;</kbd><span>RIGHT</span></button>
+        </div>
         <div class="objective-chip"><span class="objective-glyph">◉</span><span><b>GOAL</b><i>Break through the Rift</i></span></div>
       </section>
 

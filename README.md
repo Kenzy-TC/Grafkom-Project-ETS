@@ -28,6 +28,7 @@ Hindari tiga shock pylon. Pasukan yang cukup kuat dapat melewati Shadow Guard da
 
 ## Kontrol
 
+- Setelah mulai, pasukan berlari otomatis. Klik tombol **LEFT** / **RIGHT** pada HUD agar bisa dimainkan tanpa keyboard; tombol ini juga bisa disentuh di layar ponsel.
 - `A` / `D` atau tombol panah kiri/kanan: pindah jalur.
 - Klik panel gate yang ingin dipilih untuk mengunci rute.
 - Klik **Deploy Your Army** untuk memulai; klik **Run It Back** atau tekan `R` setelah hasil untuk mengulang.

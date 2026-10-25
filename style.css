@@ -63,6 +63,9 @@ button { font: inherit; }
 .hint-symbol { font-size: 14px; color: #78dfe8; }
 .steer-panel { height: 47px; min-width: 340px; display: flex; align-items: center; justify-content: center; gap: 18px; padding: 4px 17px; }
 .steer-key { display: flex; align-items: center; gap: 5px; }
+.steer-button { pointer-events: auto; border: 0; padding: 3px 5px; color: inherit; background: transparent; cursor: pointer; touch-action: manipulation; transition: background .15s, color .15s, transform .15s; }
+.steer-button:hover, .steer-button:focus-visible { color: #8ce8ef; background: rgba(105, 220, 232, .1); outline: 1px solid rgba(105, 220, 232, .4); }
+.steer-button:active { transform: scale(.94); background: rgba(105, 220, 232, .2); }
 kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 4px; border: 1px solid rgba(172, 211, 220, .23); border-bottom-color: rgba(172, 211, 220, .43); border-radius: 2px; background: rgba(195, 225, 229, .06); color: #d1e0e1; font: 10px var(--mono); }
 .steer-key > span { margin-left: 4px; color: #7f909a; font: 7px var(--mono); letter-spacing: .1em; }
 .steer-center { width: 68px; display: flex; align-items: center; justify-content: center; gap: 3px; position: relative; height: 27px; }
