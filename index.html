@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07101b" />
+    <meta name="description" content="Elemental Army Run — pimpin pasukanmu melintasi Riftway." />
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+    <title>Elemental Army Run — Riftway Protocol</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main id="game" aria-label="Elemental Army Run">
+      <canvas id="scene" aria-label="Scene 3D Elemental Army Run"></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <section class="topbar" aria-label="Status permainan">
+        <div class="brand-lockup">
+          <div class="brand-mark"><span></span><span></span><span></span></div>
+          <div class="brand-copy">
+            <span class="eyebrow">RIFTWAY PROTOCOL <i></i> FIELD SIMULATION</span>
+            <strong>ELEMENTAL <b>ARMY RUN</b></strong>
+          </div>
+        </div>
+        <div class="run-progress" aria-label="Progress perjalanan">
+          <div class="progress-label"><span>RIFT ROUTE <b id="route-step">01</b></span><span id="progress-percent">0%</span></div>
+          <div class="progress-track"><span id="progress-fill"></span><i id="progress-dot"></i></div>
+          <div class="progress-stops"><span>FORMATION</span><span>WAR ZONE</span><span>THE RIFT</span></div>
+        </div>
+        <div class="crew-readout">
+          <div class="crew-emblem" id="element-emblem"><span id="element-glyph">✦</span></div>
+          <div class="crew-numbers"><span class="eyebrow">ACTIVE UNITS</span><strong id="unit-count">12</strong></div>
+          <div class="crew-divider"></div>
+          <div class="crew-element"><span class="eyebrow">ELEMENT</span><strong id="element-name">FIRE</strong></div>
+        </div>
+      </section>
+
+      <section class="mission-card" id="mission-card" aria-label="Objective">
+        <div class="mission-icon"><span>◎</span></div>
+        <div><span class="eyebrow">PRIMARY DIRECTIVE</span><strong id="mission-title">REACH THE RIFT</strong><p id="mission-copy">Build your formation. Lead them through.</p></div>
+      </section>
+
+      <div class="stage-tag"><span class="stage-pulse"></span><span id="stage-label">SECTOR 01 — ASHEN CAUSEWAY</span></div>
+      <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+
+      <section class="battle-banner" id="battle-banner" aria-live="polite">
+        <div class="battle-kicker" id="battle-kicker">CONTACT</div>
+        <strong id="battle-title">SHADOW GUARD</strong>
+        <div class="health-track"><i id="enemy-health"></i></div>
+        <span id="battle-subtitle">ENEMY FORMATION</span>
+      </section>
+
+      <div class="crosshair" aria-hidden="true"><span></span><i></i></div>
+
+      <section class="screen screen-start" id="start-screen" aria-label="Mulai permainan">
+        <div class="start-card">
+          <div class="start-topline"><span><i class="live-dot"></i> FIELD TEST // 08.24</span><span>RUN 01 / 01</span></div>
+          <div class="title-overline"><span class="title-slash">//</span> A RIFTWAY RUNNER</div>
+          <h1>THE RIFT<br /><em>IS OPEN.</em></h1>
+          <p class="start-description">Lead an elemental army through a collapsing frontier. Choose your gates. Survive the breach.</p>
+          <div class="start-facts"><div><span>YOUR SQUAD</span><strong>12 <i>FIREKIN</i></strong></div><div><span>THREAT LEVEL</span><strong class="threat">CRITICAL <b>◆◆◆</b></strong></div><div><span>MISSION</span><strong>REACH THE RIFT</strong></div></div>
+          <button class="primary-button" id="start-button"><span>DEPLOY YOUR ARMY</span><b>↗</b></button>
+          <div class="controls-note"><kbd>A</kbd><kbd>D</kbd> OR <kbd>←</kbd><kbd>→</kbd> TO STEER <span>·</span> CLICK A GATE TO LOCK YOUR ROUTE</div>
+          <div class="start-footer"><span>THREE FORCES. ONE LAST STAND.</span><span>EAR / V.01</span></div>
+        </div>
+        <div class="start-coordinate">COORD 03.8175° S<br />RIFTWAY / EAST SPAN</div>
+        <div class="start-stamp"><span>OPERATION</span><strong>LAST<br />LIGHT</strong><i>●</i></div>
+      </section>
+
+      <section class="screen screen-end is-hidden" id="end-screen" aria-label="Hasil permainan">
+        <div class="end-card"><span class="eyebrow" id="end-kicker">MISSION COMPLETE</span><h2 id="end-title">THE RIFT<br /><em>IS SEALED.</em></h2><p id="end-copy">Your formation held. The frontier is safe for now.</p><div class="end-stats"><div><span>SURVIVING UNITS</span><strong id="end-units">00</strong></div><div><span>ELEMENT MASTERY</span><strong id="end-element">FIRE</strong></div></div><button class="primary-button" id="restart-button"><span>RUN IT BACK</span><b>↻</b></button><div class="end-footnote">EVERY CHOICE CHANGES THE FORMATION.</div></div>
+      </section>
+
+      <section class="bottom-hud" aria-label="Kontrol dan petunjuk">
+        <div class="hint-chip"><span class="hint-symbol">✳</span><span id="hint-text">DODGE THE SHOCK PYLONS</span></div>
+        <div class="steer-panel"><div class="steer-key"><kbd>A</kbd><kbd>←</kbd><span>LEFT</span></div><div class="steer-center"><i></i><i></i><i></i><span>STEER YOUR FORMATION</span></div><div class="steer-key"><kbd>D</kbd><kbd>→</kbd><span>RIGHT</span></div></div>
+        <div class="objective-chip"><span class="objective-glyph">◉</span><span><b>GOAL</b><i>Break through the Rift</i></span></div>
+      </section>
+
+      <div class="loading-screen" id="loading-screen"><div class="loader-mark"><i></i><i></i><i></i></div><span>SUMMONING YOUR FORMATION</span><small>LOADING RIFTWAY // PLEASE WAIT</small></div>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
