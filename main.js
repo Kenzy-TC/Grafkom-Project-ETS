@@ -732,7 +732,7 @@ function resolveEncounter() {
 }
 
 function handleWorldEvents(previousZ, currentZ) {
-  riftTexture.offset.y = (time * .11) % 1;
+  riftTexture.offset.y = (game.clockTime * .11) % 1;
   for (const gate of gateRecords) {
     if (gate.resolved || !(previousZ > gate.z && currentZ <= gate.z)) continue;
     applyGate(chooseGate(gate.route));
