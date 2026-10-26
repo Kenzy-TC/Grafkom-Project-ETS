@@ -1,124 +1,124 @@
 # Elemental Army Run — Riftway Protocol
 
 > **Topik UTS:** Elemental Army Run  
-> **Bentuk:** mini game 3D runner untuk browser
+> **Jenis proyek:** mini-game runner 3D berbasis browser
 
 ## Deskripsi
 
-*Elemental Army Run: Riftway Protocol* adalah mini game 3D runner berbasis browser. Pemain memimpin pasukan Fire, Water, atau Electric menyeberangi Ashen Causeway. Pilihan gate mengubah jumlah dan elemen pasukan; shock pylon menguji jalur yang dipilih; lalu pasukan menghadapi Shadow Guard dan Rift Warden.
+Pimpin pasukan Fire, Water, atau Electric melintasi Ashen Causeway. Pilih gate untuk mengubah jumlah dan elemen pasukan, hindari shock pylon, lalu hadapi Shadow Guard dan Rift Warden.
 
-## Anggota
+## Anggota dan kontribusi
 
-| Anggota | NRP |
-| --- | --- |
-| Mario Napitupulu | 5025241085 |
-| Nathanael Oliver Amadhika Yuswana | 5025241109 |
+| Anggota | NRP | Kontribusi |
+| --- | --- | --- |
+| Mario Napitupulu | 5025241085 | Scene dan environment, gate, formasi pasukan, model GLTF, serta HUD |
+| Nathanael Oliver Amadhika Yuswana | 5025241109 | Gameplay, battle, state permainan, elemental VFX, HUD, serta kontribusi scene dan environment |
 
-## Gameplay dan objective
+## Gameplay dan tujuan
 
-Mulai dengan 12 Firekin. Pasukan berlari otomatis; geser ke kiri atau kanan untuk masuk ke gate atau menghindari shock pylon. Klik gate yang terlihat untuk mengunci arah. Bonus hanya diambil jika pusat pasukan benar-benar masuk ke bukaan gate; melewati tengah berarti kedua bonus terlewat.
+Mulai dengan 12 Firekin. Pasukan berlari otomatis sementara pemain memilih jalur, mengambil bonus, dan menghindari hazard. Ada sembilan pasang gate di sepanjang rute; isi, nilai, dan posisi gate diacak setiap run. Bonus hanya berlaku jika pusat formasi masuk ke bukaan gate. Gate yang sudah dilewati tetap terlihat redup sebagai jejak rute.
 
-Ada sembilan pasang gate di sepanjang rute. Isi, nilai bonus/penalti, dan posisi kiri/kanannya diacak setiap kali run dimulai ulang. Pilihannya mencakup rekrut Fire/Electric, pengganda pasukan x2, pembagi pasukan ÷2, konversi Water/Electric, **Rift Tax** yang mengurangi unit, **Blood Pact** yang menukar unit dengan power, **Unstable Clone** yang menggandakan pasukan lalu memicu recoil, serta **Water Bargain** yang menukar unit dengan ward dan power. Nilai setiap tawaran terlihat langsung pada papan gate sebelum dipilih. Gate dan pylon yang sudah dilewati tetap terlihat redup sebagai jejak rute.
+**Alur permainan:** Deploy → bergerak dan memilih gate → menghindari hazard → dua wave battle → Rift Warden → menang atau kalah.
+
+### Pilihan gate
 
 | Gate | Dampak |
 | --- | --- |
-| Fire Recruit | Tambah 4-7 unit Fire dan 1 power. |
-| Electric Recruit | Tambah 4-7 unit Electric dan 1-3 power. |
-| Convert Water | Ubah formasi menjadi Water, dapat 1-3 ward dan 1 power. |
-| Convert Electric | Ubah formasi menjadi Electric dan dapat 2-4 power. |
-| Multiply | Gandakan jumlah unit. |
-| Divide Army | Bagi dua jumlah unit, dibulatkan ke bawah (minimal 1 unit). |
-| Rift Tax | Kehilangan 3-6 unit. |
-| Blood Pact | Tukar 2-4 unit untuk 4-7 power dan konversi Fire. |
-| Unstable Clone | Gandakan pasukan x3, lalu recoil mengurangi 28-42% hasil clone. |
-| Water Bargain | Tukar 2-4 unit untuk 2-3 ward, 2-4 power, dan konversi Water. |
+| Fire Recruit | Tambah 4–7 Fire dan 1 power. |
+| Electric Recruit | Tambah 4–7 Electric dan 1–3 power. |
+| Convert Water | Ubah elemen ke Water, tambah 1–3 ward dan 1 power. |
+| Convert Electric | Ubah elemen ke Electric dan tambah 2–4 power. |
+| Multiply | Gandakan jumlah pasukan. |
+| Divide Army | Bagi dua jumlah pasukan, dibulatkan ke bawah; minimal 1 unit. |
+| Rift Tax | Kurangi 3–6 unit. |
+| Blood Pact | Tukar 2–4 unit dengan 4–7 power dan ubah elemen ke Fire. |
+| Unstable Clone | Gandakan pasukan tiga kali, lalu recoil mengurangi 28–42% hasil clone. |
+| Water Bargain | Tukar 2–4 unit dengan 2–3 ward, 2–4 power, dan elemen Water. |
 
-Elemen punya keunggulan dan kelemahan saat battle: **Fire mengalahkan Water**, **Water mengalahkan Electric**, dan **Electric mengalahkan Fire**. Counter memberi bonus kekuatan; memilih elemen yang dikalahkan musuh memberi penalti. Fire juga punya bonus dasar battle 25%, Water memakai ward untuk menahan pylon dan mengurangi korban, sementara Electric mematikan pylon dan mempercepat battle. HUD battle mengumumkan elemen lawan dan kelemahannya.
+Isi gate dan efeknya terlihat pada papan sebelum dipilih. Karena ada bonus dan penalti, pemain perlu mempertimbangkan jumlah pasukan, elemen, dan kondisi rute.
 
-Battle menampilkan musuh yang muncul dari portal, serangan energi bolak-balik antara pasukan dan musuh, impact particle, guncangan kamera saat musuh menyerang, serta health bar yang bergerak mengikuti pertarungan. Rift Warden memiliki dua fase: perisainya pecah di tengah battle dan core Water terbuka; serangannya lalu lebih cepat dan Fire mendapat bonus counter tambahan. **Menang** jika kekuatan pasukan mengalahkan musuh final; **kalah** jika pasukan kurang kuat dalam salah satu battle. Gunakan tombol restart untuk mengacak ulang isi gate dan bermain lagi.
+### Elemen dan battle
 
-## Control
+Elemen memiliki hubungan counter: **Fire mengalahkan Water, Water mengalahkan Electric, dan Electric mengalahkan Fire.** Counter memberi bonus kekuatan, sedangkan memilih elemen yang dikalahkan musuh memberi penalti.
 
-- Setelah mulai, pasukan berlari otomatis. Klik tombol **LEFT** / **RIGHT** pada HUD agar bisa dimainkan tanpa keyboard; tombol ini juga bisa disentuh di layar ponsel.
-- `A` / `D` atau tombol panah kiri/kanan: pindah jalur.
-- Klik panel gate yang ingin dipilih untuk mengunci rute.
-- Klik **Deploy Your Army** untuk memulai; klik **Run It Back** atau tekan `R` setelah hasil untuk mengulang.
+Setiap elemen juga punya kemampuan khusus: Fire mendapat bonus dasar battle 25%, ward Water membantu menahan pylon dan mengurangi korban, sedangkan Electric dapat mematikan pylon dan mempercepat battle. HUD menampilkan elemen lawan dan kelemahannya.
 
-## Graphics Features dan Interaction
+Battle menampilkan musuh yang muncul dari portal, serangan energi bergantian, partikel impact, guncangan kamera, dan health bar. Rift Warden memiliki dua fase: shield-nya pecah di tengah battle, membuka core Water dan mempercepat serangannya. Pasukan menang jika kekuatannya cukup untuk mengalahkan musuh; jika gagal dalam battle, permainan berakhir dengan lose state. Pilih **Run It Back** atau tekan <kbd>R</kbd> setelah hasil untuk memulai ulang dengan susunan gate baru.
 
-- Scene Three.js dengan perspektif third-person, jalur, environment reruntuhan prosedural, kabut, starfield, dan fog.
-- Model prajurit low-poly **GLTF buatan project** dengan struktur parent-child. Material pasukan berubah secara PBR untuk Fire, Water transparan, dan Electric emissive.
-- Formation leader dan followers; jumlah pada HUD mengikuti pasukan aktual (hingga 99), dengan maksimum 24 model crowd dirender agar scene tetap ringan.
-- Gate emissive dengan portal dan tekstur procedural yang bergerak, serta panel pilihan yang dapat dipilih memakai `THREE.Raycaster`.
-- Sembilan pasang gate dengan susunan dan nilai acak per run, reward, penalti langsung, serta risk/reward; papan gate menampilkan efek dan besar perubahannya sebelum dipilih.
-- Counter elemen Fire > Water > Electric > Fire mengubah hasil battle. HUD menunjukkan kelemahan musuh sebelum hasil dihitung.
-- Pertarungan memakai animasi kemunculan dari portal, laser serangan bergantian, impact sparks, camera shake, dan health bar. Rift Warden berganti fase dari shield ke core terbuka, dengan serangan lebih cepat dan bonus Fire saat core Water terekspos.
-- Tiga kemampuan elemen yang mengubah strategi: bonus battle Fire, ward Water, dan Electric yang mematikan shock pylon. Pilihan gate hanya berlaku jika formation masuk ke bukaan gate; opsi yang terlewat tetap tampak redup.
-- Rute sepanjang sekitar 260 unit dengan sebelas hazard, dua wave battle, lalu boss final.
-- Animasi lari unit, portal/gate pulse, pylon, boss, dan particle system untuk fire sparks, water bubbles, electric arcs, serta shockwave saat gate/battle.
-- Minimal dua lampu, shadow map, object yang cast shadow, surface yang receive shadow, HUD progress dan objective, battle health feedback, win/lose state, dan reset.
+## Kontrol
+
+| Input | Aksi |
+| --- | --- |
+| <kbd>A</kbd> / <kbd>D</kbd> atau tombol panah kiri/kanan | Pindah jalur. |
+| Tombol **LEFT** / **RIGHT** pada HUD | Pindah jalur dengan mouse atau layar sentuh. |
+| Klik panel gate | Memilih jalur gate. |
+| **Deploy Your Army** atau <kbd>Enter</kbd> / <kbd>Space</kbd> | Memulai permainan. |
+| Tombol **PAUSE** atau <kbd>P</kbd> / <kbd>Esc</kbd> | Jeda atau lanjutkan permainan. |
+| **Run It Back** atau <kbd>R</kbd> setelah hasil | Memulai ulang permainan. |
+
+## Fitur grafika dan interaksi
+
+- **Scene dan kamera:** scene Three.js dengan kamera perspektif third-person, jalan, reruntuhan, starfield, dan fog.
+- **Environment prosedural:** langit dibuat dengan <code>CanvasTexture</code>; kota, jalan, gate, pantulan cahaya, dan rintik hujan dibangun di <code>main.js</code>.
+- **Model dan material:** prajurit low-poly GLTF buatan project dengan struktur parent–child. Material PBR membedakan Fire, Water transparan, dan Electric emissive.
+- **Crowd dan animasi:** leader mengatur formasi pasukan; maksimal 24 model dirender agar tetap ringan. Animasi meliputi lari unit, gate dan portal, pylon, boss, serta serangan battle.
+- **Cahaya dan bayangan:** beberapa lampu, shadow map, object yang cast shadow, dan permukaan yang menerima shadow.
+- **Interaksi:** kendali jalur, pilihan gate dengan <code>THREE.Raycaster</code>, serta penghindaran hazard.
+- **VFX dan feedback:** partikel api, gelembung Water, electric arc, portal glow, shockwave, flash saat terkena efek, dan health bar battle.
+- **HUD dan game state:** jumlah unit, elemen, tujuan, progress rute, feedback battle, win/lose state, dan restart.
 
 ## Struktur project
 
-```text
-Praktikum-UTS/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml       # Deploy otomatis ke GitHub Pages
-├── assets/
-│   ├── build-ember-captain.ps1 # Generator model karakter
-│   ├── ember-captain.bin    # Data geometri model GLTF
-│   ├── ember-captain.gltf   # Model karakter
-│   └── favicon.svg
-├── screenshots/
-│   └── screenshot.png       # Screenshot scene dan layar awal
-├── .nojekyll
-├── index.html               # Struktur halaman, HUD, dan layar game
-├── main.js                  # Scene Three.js, gameplay, animasi, dan VFX
-├── style.css                # Tampilan UI dan layout responsif
-└── README.md
-```
+    Praktikum-UTS/
+    ├── .github/workflows/deploy.yml   # Deploy GitHub Pages
+    ├── assets/
+    │   ├── build-ember-captain.ps1    # Generator model karakter
+    │   ├── ember-captain.bin          # Data geometri model
+    │   ├── ember-captain.gltf         # Model karakter
+    │   └── favicon.svg
+    ├── screenshots/screenshot.png     # Screenshot project
+    ├── .nojekyll
+    ├── index.html                     # Halaman, HUD, dan layar game
+    ├── main.js                        # Scene, gameplay, animasi, dan VFX
+    ├── style.css                      # Tampilan dan layout responsif
+    └── README.md
 
 ## Cara menjalankan
 
-Project ini memakai ES modules dan memuat Three.js 0.169.0 dari jsDelivr. Jalankan melalui server HTTP lokal, dengan koneksi internet agar modul Three.js dapat dimuat.
+Project menggunakan ES modules dan memuat Three.js 0.169.0 dari jsDelivr. Koneksi internet diperlukan agar Three.js dan font dari CDN dapat dimuat.
 
-1. Buka folder repository yang berisi `index.html` di VS Code, lalu jalankan **Live Server** pada file tersebut; atau dari terminal di folder ini jalankan:
+1. Buka folder <code>Praktikum-UTS</code> di VS Code dan jalankan **Live Server** pada <code>index.html</code>; atau buka terminal di folder tersebut, lalu jalankan:
 
-   ```powershell
-   python -m http.server 8000
-   ```
+       python -m http.server 8000
 
-2. Buka `http://localhost:8000` di browser desktop.
-3. Tunggu layar loading hilang, lalu klik **Deploy Your Army**.
+2. Buka [http://localhost:8000](http://localhost:8000) di browser desktop.
+3. Tunggu loading selesai, lalu pilih **Deploy Your Army**.
 
-Jangan membuka `index.html` langsung lewat `file://`, karena browser akan memblokir pemuatan ES module dan GLTF lokal.
+Jangan membuka <code>index.html</code> langsung dengan <code>file://</code>. Browser perlu HTTP lokal untuk memuat ES modules dan model GLTF.
 
 ## Deploy ke GitHub Pages
 
-Workflow `.github/workflows/deploy.yml` otomatis mengunggah folder `Praktikum-UTS` setiap kali ada push ke branch `main`. Untuk mengaktifkan Pages pertama kali, buka **Settings → Pages** pada repository dan pilih **GitHub Actions** sebagai *Build and deployment source*. Setelah workflow selesai, situs tersedia di:
+Workflow <code>.github/workflows/deploy.yml</code> menerbitkan isi folder ini setiap kali ada push ke branch <code>main</code>. Untuk konfigurasi awal, buka **Settings → Pages** di repository dan pilih **GitHub Actions** sebagai sumber deploy.
 
-**https://kenzy-tc.github.io/Grafkom-Project-ETS/**
+Situs: [kenzy-tc.github.io/Grafkom-Project-ETS](https://kenzy-tc.github.io/Grafkom-Project-ETS/)
 
-## Challenge implementasi
+## Tantangan implementasi
 
-- Menjaga pilihan gate Raycaster dan jalur keyboard tetap selaras dengan auto-run.
-- Menyeimbangkan gate jumlah/elemen, hazard collision, kekuatan Shadow Guard, dan syarat boss agar pilihan rute berpengaruh.
-- Memvisualisasikan hingga 24 karakter dari satu asset GLTF tanpa flocking, sambil menjaga animasi dan perubahan elemen tetap sinkron.
+- Menjaga pilihan gate dengan Raycaster tetap selaras dengan perpindahan jalur selama pasukan berlari otomatis.
+- Menyeimbangkan reward dan penalti gate, hazard, dua wave musuh, serta boss agar pilihan pemain berpengaruh.
+- Menampilkan hingga 24 karakter dari satu model GLTF sambil menjaga animasi dan perubahan elemen tetap sinkron.
 
-## Pembagian kontribusi
+## Kredit aset
 
-- **Mario Napitupulu:** komposisi scene dan environment prosedural, pembuatan gate, crowd formation, model karakter GLTF dan generator-nya, serta kontribusi pada HUD.
-- **Nathanael Oliver Amadhika Yuswana:** gameplay dan state permainan, interaksi gate dan hazard, battle serta boss, elemental VFX, HUD, serta kontribusi pada scene dan environment.
-
-## Asset Credits
-
-- `assets/ember-captain.gltf` dan `assets/ember-captain.bin`: model low-poly karakter orisinal yang dibangun secara prosedural oleh project; generator-nya ada di `assets/build-ember-captain.ps1`. Tidak ada asset gambar/model eksternal.
-- Three.js 0.169.0 dan GLTFLoader: [Three.js](https://github.com/mrdoob/three.js), lisensi MIT; dimuat dari jsDelivr CDN.
-- Font **Chakra Petch** (Cadson Demak / The Chakra Petch Project Authors) dan **Orbitron** (Matt McInerney), dari [Google Fonts](https://fonts.google.com/); keduanya memakai SIL Open Font License 1.1 ([Chakra Petch](https://github.com/google/fonts/tree/main/ofl/chakrapetch), [Orbitron](https://github.com/google/fonts/tree/main/ofl/orbitron)) dan dimuat dari Google Fonts CDN.
-- Background tidak memakai gambar panorama/HDR eksternal: sky dibuat dengan `CanvasTexture`, sementara kota, jalan, pencahayaan refleksi, rintik hujan, gate, dan environment dibangun secara prosedural di `main.js`.
-- Efek partikel, tekstur portal, gate signage, boss, environment, dan UI dibuat oleh project.
+| Asset | Sumber dan lisensi |
+| --- | --- |
+| Karakter <code>ember-captain.gltf</code> dan <code>ember-captain.bin</code> | Dibuat secara prosedural untuk project; generator ada di <code>assets/build-ember-captain.ps1</code>. Tidak memakai model atau gambar eksternal. |
+| Three.js 0.169.0 dan GLTFLoader | [Three.js](https://github.com/mrdoob/three.js), lisensi MIT; dimuat dari jsDelivr CDN. |
+| Font Chakra Petch dan Orbitron | Chakra Petch oleh Cadson Demak dan para kontributor; Orbitron oleh Matt McInerney. Keduanya dari [Google Fonts](https://fonts.google.com/) dan memakai [SIL Open Font License 1.1](https://openfontlicense.org/). |
+| Background, efek, dan UI | Dibuat oleh project: sky procedural, kota, jalan, gate, partikel, tekstur portal, boss, dan antarmuka. |
 
 ## Screenshot
 
-`screenshots` memperlihatkan scene terbaru, formation awal, HUD, dan layar deployment project.
+![Scene Elemental Army Run, formation awal, HUD, dan layar deployment](screenshots/Start.png)
+
+Contoh tampilan lainnya: [Gameplay](screenshots/Gameplay.png) · [Enemy](screenshots/Enemy.png) · [Boss](screenshots/Boss.png) · [Pause](screenshots/Pause.png) · [End](screenshots/End.png).
