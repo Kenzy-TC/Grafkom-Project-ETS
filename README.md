@@ -62,7 +62,7 @@ Battle menampilkan musuh yang muncul dari portal, serangan energi bolak-balik an
 
 Project ini memakai ES modules dan memuat Three.js 0.169.0 dari jsDelivr. Jalankan melalui server HTTP lokal, dengan koneksi internet agar modul Three.js dapat dimuat.
 
-1. Buka folder `Praktikum-UTS` di VS Code, lalu jalankan **Live Server** pada `index.html`; atau dari terminal di folder ini jalankan:
+1. Buka folder repository yang berisi `index.html` di VS Code, lalu jalankan **Live Server** pada file tersebut; atau dari terminal di folder ini jalankan:
 
    ```powershell
    python -m http.server 8000
@@ -89,6 +89,8 @@ Workflow `.github/workflows/deploy.yml` otomatis mengunggah folder `Praktikum-UT
 
 - `assets/ember-captain.gltf` dan `assets/ember-captain.bin`: model low-poly karakter orisinal yang dibangun secara prosedural oleh project; generator-nya ada di `assets/build-ember-captain.ps1`. Tidak ada asset gambar/model eksternal.
 - Three.js 0.169.0 dan GLTFLoader: [Three.js](https://github.com/mrdoob/three.js), lisensi MIT; dimuat dari jsDelivr CDN.
+- Font **Chakra Petch** (Cadson Demak / The Chakra Petch Project Authors) dan **Orbitron** (Matt McInerney), dari [Google Fonts](https://fonts.google.com/); keduanya memakai SIL Open Font License 1.1 ([Chakra Petch](https://github.com/google/fonts/tree/main/ofl/chakrapetch), [Orbitron](https://github.com/google/fonts/tree/main/ofl/orbitron)) dan dimuat dari Google Fonts CDN.
+- Background tidak memakai gambar panorama/HDR eksternal: sky dibuat dengan `CanvasTexture`, sementara kota, jalan, pencahayaan refleksi, rintik hujan, gate, dan environment dibangun secara prosedural di `main.js`.
 - Efek partikel, tekstur portal, gate signage, boss, environment, dan UI dibuat oleh project.
 
 ## Screenshot
