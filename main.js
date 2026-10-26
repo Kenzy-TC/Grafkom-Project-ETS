@@ -116,6 +116,7 @@ const game = {
   electricRefresh: 0,
   feedbackTimer: 0,
   clockTime: 0,
+  cameraShake: 0,
   previousZ: 2.4,
   defeatedWave: false,
   defeatedSecondWave: false,
@@ -358,31 +359,7 @@ function buildGroundAndRoad() {
     for (const x of [-1.225, 1.225]) addMesh(world, dashGeo, dashMat, [x, -.012, z], null, false, false);
   }
 
-  // Irregular, glossy rain puddles pick up the neon environment softly.
-  const puddleMat = new THREE.MeshPhysicalMaterial({ color: 0x242037, roughness: .2, metalness: .58, clearcoat: .9, clearcoatRoughness: .14, envMap: neonEnvTexture, envMapIntensity: 1.35, polygonOffset: true, polygonOffsetFactor: -2 });
-  for (let i = 0; i < 18; i++) {
-    const shape = new THREE.Shape();
-    const points = [];
-    const pointCount = 12;
-    const radiusX = .8 + random() * 1.5, radiusY = 1.4 + random() * 3.2;
-    const phase = random() * Math.PI * 2;
-    for (let j = 0; j < pointCount; j++) {
-      const angle = phase + j / pointCount * Math.PI * 2;
-      const uneven = .72 + random() * .42;
-      points.push(new THREE.Vector2(Math.cos(angle) * radiusX * uneven, Math.sin(angle) * radiusY * uneven));
-    }
-    shape.moveTo(points[0].x, points[0].y);
-    for (let j = 1; j <= pointCount; j++) {
-      const previous = points[(j - 1) % pointCount], current = points[j % pointCount];
-      shape.quadraticCurveTo(previous.x, previous.y, (previous.x + current.x) * .5, (previous.y + current.y) * .5);
-    }
-    shape.closePath();
-    const puddle = new THREE.Mesh(new THREE.ShapeGeometry(shape, 24), puddleMat);
-    puddle.rotation.x = -Math.PI / 2;
-    puddle.position.set((random() - .5) * 9.6, -.024, 6 - random() * 284);
-    puddle.rotation.z = random() * Math.PI;
-    world.add(puddle);
-  }
+
 }
 
 function placeBladeSign(def, spec, faceX, normalSign) {
@@ -1117,7 +1094,21 @@ function updateFx(dt) {
     const effect = activeFx[i];
     effect.age += dt;
     const progress = Math.min(1, effect.age / effect.lifetime);
-    if (effect.isPoints) {
+    if (effect.isPortal) {
+      const opening = Math.min(1, progress / .72);
+      const fade = progress < .72 ? 1 : Math.max(0, (1 - progress) / .28);
+      const pulse = 1 + Math.sin(effect.age * 13) * .025;
+      effect.mesh.scale.setScalar(.035 + opening * 1.08 * pulse);
+      effect.mesh.rotation.y += dt * 1.8;
+      const glow = Math.min(1, progress * 7) * fade;
+      effect.mesh.children.forEach((child) => {
+        if (child.material && child.userData.portalBaseOpacity !== undefined) {
+          child.material.opacity = child.userData.portalBaseOpacity * glow;
+        }
+      });
+      if (effect.portalLight) effect.portalLight.intensity = effect.portalLight.userData.baseIntensity * glow;
+      if (effect.portalFill) effect.portalFill.intensity = effect.portalFill.userData.baseIntensity * glow;
+    } else if (effect.isPoints) {
       const attr = effect.mesh.geometry.getAttribute('position');
       for (let j = 0; j < effect.velocity.length; j++) {
         attr.array[j * 3] += effect.velocity[j].x * dt;
@@ -1133,8 +1124,15 @@ function updateFx(dt) {
     }
     if (progress >= 1) {
       world.remove(effect.mesh);
-      effect.mesh.geometry.dispose();
-      effect.mesh.material.dispose();
+      if (effect.mesh.isGroup) {
+        effect.mesh.traverse((child) => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+        });
+      } else {
+        effect.mesh.geometry.dispose();
+        effect.mesh.material.dispose();
+      }
       activeFx.splice(i, 1);
     }
   }
@@ -1155,16 +1153,137 @@ function missGate(routeId) {
   setFeedback('GATE MISSED // NO BONUS', '#ff4d6d');
 }
 
+function openEnemyPortal(z, radius, color, isBoss = false) {
+  const portal = new THREE.Group();
+  portal.position.set(0, .12, z);
+
+  const discMat = new THREE.MeshBasicMaterial({
+    map: riftTexture, color: hdr(color, 1.35), transparent: true, opacity: .7,
+    side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(radius, 64), discMat);
+  disc.rotation.x = -Math.PI / 2;
+  disc.userData.portalBaseOpacity = .7;
+  portal.add(disc);
+
+  // A second luminous layer and a compact core create the impression of a deep opening.
+  const innerMat = new THREE.MeshBasicMaterial({
+    map: riftTexture, color: hdr(NEON.violet, 1.8), transparent: true, opacity: .48,
+    side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const innerDisc = new THREE.Mesh(new THREE.CircleGeometry(radius * .64, 48), innerMat);
+  innerDisc.rotation.x = -Math.PI / 2;
+  innerDisc.position.y = .025;
+  innerDisc.userData.portalBaseOpacity = .48;
+  portal.add(innerDisc);
+
+  const coreMat = new THREE.MeshBasicMaterial({
+    map: glowTexture, color: hdr(NEON.pink, 2.4), transparent: true, opacity: .76,
+    depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const coreGlow = new THREE.Mesh(new THREE.CircleGeometry(radius * .42, 48), coreMat);
+  coreGlow.rotation.x = -Math.PI / 2;
+  coreGlow.position.y = .045;
+  coreGlow.userData.portalBaseOpacity = .76;
+  portal.add(coreGlow);
+
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: hdr(color, 1.8), transparent: true, opacity: .98,
+    side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const outerRing = new THREE.Mesh(new THREE.TorusGeometry(radius * .9, .13, 10, 80), ringMat);
+  outerRing.rotation.x = Math.PI / 2;
+  outerRing.userData.portalBaseOpacity = .98;
+  portal.add(outerRing);
+
+  const innerRingMat = ringMat.clone();
+  innerRingMat.color.set(hdr(0xffc36b, 2.1));
+  innerRingMat.opacity = .82;
+  const innerRing = new THREE.Mesh(new THREE.TorusGeometry(radius * .59, .065, 8, 64), innerRingMat);
+  innerRing.rotation.x = Math.PI / 2;
+  innerRing.userData.portalBaseOpacity = .82;
+  portal.add(innerRing);
+
+  if (isBoss) {
+    const wellMat = new THREE.MeshBasicMaterial({
+      map: riftTexture, color: hdr(NEON.violet, 2.2), transparent: true, opacity: .62,
+      side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    });
+    const well = new THREE.Mesh(new THREE.CircleGeometry(radius * .34, 48), wellMat);
+    well.rotation.x = -Math.PI / 2;
+    well.position.y = .065;
+    well.userData.portalBaseOpacity = .62;
+    portal.add(well);
+
+    const coreRingMat = ringMat.clone();
+    coreRingMat.color.set(hdr(NEON.cyan, 2.2));
+    coreRingMat.opacity = .78;
+    const coreRing = new THREE.Mesh(new THREE.TorusGeometry(radius * .33, .09, 10, 64), coreRingMat);
+    coreRing.rotation.x = Math.PI / 2;
+    coreRing.userData.portalBaseOpacity = .78;
+    portal.add(coreRing);
+  }
+
+  const portalLight = new THREE.PointLight(NEON.orange, isBoss ? 66 : 42, radius * (isBoss ? 5.2 : 4.2), 2);
+  portalLight.position.set(0, 1.2, 0);
+  portalLight.userData.baseIntensity = isBoss ? 66 : 42;
+  portal.add(portalLight);
+  let portalFill = null;
+  if (isBoss) {
+    portalFill = new THREE.PointLight(NEON.violet, 34, radius * 4.5, 2);
+    portalFill.position.set(0, .8, 0);
+    portalFill.userData.baseIntensity = 34;
+    portal.add(portalFill);
+  }
+
+  portal.scale.setScalar(.035);
+  world.add(portal);
+  activeFx.push({ mesh: portal, age: 0, lifetime: 1.5, isPortal: true, portalLight, portalFill });
+  spawnPortalSparks(z, radius * .9, color);
+}
+
+function spawnPortalSparks(z, radius, color) {
+  const count = 132;
+  const positions = new Float32Array(count * 3);
+  const velocity = [];
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = radius * (.82 + Math.random() * .3);
+    positions[i * 3] = Math.cos(angle) * r;
+    positions[i * 3 + 1] = .12 + Math.random() * .48;
+    positions[i * 3 + 2] = z + Math.sin(angle) * r;
+    const speed = .8 + Math.random() * 2.1;
+    velocity.push(new THREE.Vector3(Math.cos(angle) * speed, 1.8 + Math.random() * 4.2, Math.sin(angle) * speed));
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const points = new THREE.Points(geometry, new THREE.PointsMaterial({
+    map: glowTexture, color: hdr(NEON.orange, 2.8), size: .46, transparent: true,
+    opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  }));
+  world.add(points);
+  activeFx.push({ mesh: points, positions, velocity, age: 0, lifetime: 1.65, isPoints: true });
+}
+
 function startEncounter(kind) {
   const isBoss = kind === 'boss';
   const isSecondWave = kind === 'secondWave';
   const baseDuration = isBoss ? 5.2 : isSecondWave ? 4.1 : 3.5;
   game.phase = kind === 'boss' ? 'boss' : 'battle';
-  game.encounter = { kind, elapsed: 0, pulseTimer: 0, duration: baseDuration * (game.element === 'electric' ? .82 : 1), resolved: false };
+  game.encounter = { kind, elapsed: 0, pulseTimer: 0, duration: baseDuration * (game.element === 'electric' ? .82 : 1), resolved: false, spawnProgress: 0 };
   game.targetX = 0;
   game.enemyRoot.visible = !isBoss;
-  game.enemyRoot.position.set(0, 0, isBoss ? FINAL_BOSS_Z + 5.5 : isSecondWave ? SECOND_WAVE_Z + 3.2 : -63.8);
-  if (isBoss && game.enemyBoss) game.enemyBoss.visible = true;
+  const spawnZ = isBoss ? FINAL_BOSS_Z - 4.5 : isSecondWave ? SECOND_WAVE_Z + 3.2 : -63.8;
+  game.enemyRoot.position.set(0, -2.7, isBoss ? FINAL_BOSS_Z + 5.5 : spawnZ);
+  game.enemyRoot.scale.setScalar(.42);
+  if (isBoss && game.enemyBoss) {
+    game.enemyBoss.visible = true;
+    game.enemyBoss.position.set(0, -3.2, spawnZ);
+    game.enemyBoss.scale.setScalar(.34);
+    game.cameraShake = 1.05;
+  }
+  const portalCenterZ = isBoss ? spawnZ : spawnZ - 3.82;
+  openEnemyPortal(portalCenterZ, isBoss ? 5.6 : 5.15, isBoss ? NEON.pink : NEON.orange, isBoss);
   battleBanner.classList.add('visible');
   battleKicker.textContent = isBoss ? 'FINAL ENCOUNTER' : isSecondWave ? 'SECOND CONTACT // RIFT SENTRIES' : 'CONTACT // SHADOW GUARD';
   battleTitle.textContent = isBoss ? 'RIFT WARDEN' : isSecondWave ? 'RIFT SENTRIES' : 'SHADOW GUARD';
@@ -1361,11 +1480,42 @@ function updateWorldObjects(time) {
   }
 }
 
+function applyPortalIllumination(root, strength) {
+  if (!root) return;
+  root.traverse((object) => {
+    if (!object.isMesh) return;
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      if (!material || !material.emissive) continue;
+      if (!material.userData.portalBaseEmissive) {
+        material.userData.portalBaseEmissive = material.emissive.clone();
+        material.userData.portalBaseEmissiveIntensity = material.emissiveIntensity || 0;
+      }
+      material.emissive.copy(material.userData.portalBaseEmissive)
+        .lerp(new THREE.Color(NEON.orange), strength * .62);
+      material.emissiveIntensity = material.userData.portalBaseEmissiveIntensity + strength * 1.35;
+    }
+  });
+}
+
 function updateEncounter(dt) {
   if (!game.encounter) return;
   const encounter = game.encounter;
   encounter.elapsed += dt;
   encounter.pulseTimer += dt;
+  encounter.spawnProgress = Math.min(1, encounter.spawnProgress + dt / 1.15);
+  const emerge = encounter.spawnProgress * encounter.spawnProgress * (3 - 2 * encounter.spawnProgress);
+  const illuminationFade = Math.max(0, 1 - Math.max(0, encounter.elapsed - 1.05) / 2.15);
+  const portalIllumination = Math.min(1, encounter.spawnProgress / .3) * illuminationFade;
+  if (encounter.kind === 'boss' && game.enemyBoss) {
+    applyPortalIllumination(game.enemyBoss, portalIllumination);
+    game.enemyBoss.position.y = -3.2 * (1 - emerge) + Math.sin(game.clockTime * 2.2) * .12 * emerge;
+    game.enemyBoss.scale.setScalar(.34 + .66 * emerge);
+  } else {
+    game.enemyUnits.forEach((unit) => applyPortalIllumination(unit.anchor, portalIllumination));
+    game.enemyRoot.position.y = -2.7 * (1 - emerge);
+    game.enemyRoot.scale.setScalar(.42 + .58 * emerge);
+  }
   if (encounter.pulseTimer >= .64) {
     encounter.pulseTimer = 0;
     const encounterZ = encounter.kind === 'boss' ? FINAL_BOSS_Z - 4.5 : encounter.kind === 'secondWave' ? SECOND_WAVE_Z + 2.5 : -64.5;
@@ -1447,6 +1597,7 @@ function startRun() {
 function resetRun() {
   game.phase = 'menu';
   game.pausedFrom = null;
+  game.cameraShake = 0;
   pauseScreen.classList.add('is-hidden');
   pauseButton.classList.add('is-hidden');
   game.playerZ = 2.4;
@@ -1535,6 +1686,13 @@ function update(dt) {
   keyLight.target.updateMatrixWorld();
   const desiredCamera = new THREE.Vector3(cameraX, 8.7, game.playerZ + 12.7);
   camera.position.lerp(desiredCamera, Math.min(1, dt * 2.6));
+  if (game.cameraShake > 0) {
+    game.cameraShake = Math.max(0, game.cameraShake - dt);
+    const fade = game.cameraShake / 1.05;
+    const strength = .24 * fade;
+    camera.position.x += Math.sin(game.clockTime * 52) * strength;
+    camera.position.y += Math.cos(game.clockTime * 43) * strength * .55;
+  }
   camera.lookAt(game.playerX * .45, 2.2, game.playerZ - 13);
   magentaFill.position.set(game.playerX - 4.5, 3.8, game.playerZ + 1.3);
   cyanFill.position.set(game.playerX + 5, 5, game.playerZ - 14);
@@ -1563,31 +1721,56 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
-new GLTFLoader().load('./assets/ember-captain.gltf', (gltf) => {
-  game.modelTemplate = gltf.scene;
-  game.modelTemplate.traverse((child) => {
-    if (child.isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
+let gameInitialized = false;
+function initializeGame(modelTemplate) {
+  if (gameInitialized) return;
+  gameInitialized = true;
+  game.modelTemplate = modelTemplate || null;
+  if (game.modelTemplate) {
+    game.modelTemplate.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+  }
+  try {
+    game.modelReady = true;
+    createBoss();
+    createEnemyFormation();
+    rebuildFormation();
+    createElementParticles();
+    updateHud();
+  } catch (error) {
+    console.error('Game initialization failed; using procedural fallback.', error);
+    game.modelTemplate = null;
+    try {
+      if (!game.enemyBoss) createBoss();
+      if (game.enemyUnits.length === 0) createEnemyFormation();
+      rebuildFormation();
+      if (!game.particleSystem) createElementParticles();
+      updateHud();
+    } catch (fallbackError) {
+      console.error('Procedural fallback initialization failed.', fallbackError);
     }
-  });
-  game.modelReady = true;
-  createBoss();
-  createEnemyFormation();
-  rebuildFormation();
-  createElementParticles();
-  updateHud();
-  loadingScreen.classList.add('done');
-}, undefined, () => {
-  game.modelTemplate = null;
-  game.modelReady = true;
-  createBoss();
-  createEnemyFormation();
-  rebuildFormation();
-  createElementParticles();
-  updateHud();
-  loadingScreen.classList.add('done');
-  setFeedback('GLTF FALLBACK // PROCEDURAL SENTINEL', '#53f6ff');
+  } finally {
+    loadingScreen.classList.add('done');
+  }
+}
+
+const modelLoadTimeout = window.setTimeout(() => {
+  if (gameInitialized) return;
+  console.warn('Character model load timed out; starting with procedural characters.');
+  initializeGame(null);
+}, 10000);
+
+new GLTFLoader().load('./assets/ember-captain.gltf', (gltf) => {
+  window.clearTimeout(modelLoadTimeout);
+  initializeGame(gltf.scene);
+}, undefined, (error) => {
+  window.clearTimeout(modelLoadTimeout);
+  console.warn('Character model could not be loaded; using procedural characters.', error);
+  initializeGame(null);
 });
 
 render();
