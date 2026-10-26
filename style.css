@@ -219,3 +219,28 @@ h1 em, .end-card h2 em { color: var(--yellow); font-style: normal; text-shadow: 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
 }
+
+/* Softer cyberpunk title colors and reduced glare */
+h1 em, .end-card h2 em {
+  color: #e879f9;
+  background: linear-gradient(90deg, #ff5ccf, #b88aff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 12px rgba(226, 91, 255, .2), 1px 0 rgba(255, 43, 214, .3), -1px 0 rgba(0, 240, 255, .3);
+}
+.start-stamp i { color: #d879ff; }
+.start-card, .end-card { box-shadow: 0 24px 70px rgba(0, 0, 0, .52); }
+.start-card::before, .end-card::before { box-shadow: 0 0 9px rgba(255, 43, 214, .45); }
+
+
+/* Keep the headline and action color consistently cyberpunk pink. */
+h1 em, .end-card h2 em {
+  color: #ff4fd8;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 0 0 10px rgba(255, 79, 216, .25), 1px 0 rgba(255, 43, 214, .25), -1px 0 rgba(184, 138, 255, .25);
+}
+.primary-button { background: #ff4fd8; }
+.primary-button:hover, .primary-button:focus-visible { background: #d66bff; }
+.primary-button:active { background: #b84dff; }

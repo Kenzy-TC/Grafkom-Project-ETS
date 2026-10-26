@@ -22,7 +22,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = .88;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -48,10 +48,10 @@ keyLight.shadow.camera.far = 58;
 keyLight.shadow.bias = -0.00045;
 keyLight.shadow.normalBias = 0.035;
 scene.add(keyLight);
-const magentaFill = new THREE.PointLight(0xff2bd6, 42, 24, 2);
+const magentaFill = new THREE.PointLight(0xff2bd6, 28, 24, 2);
 magentaFill.position.set(-4, 4, 2);
 scene.add(magentaFill);
-const cyanFill = new THREE.PointLight(0x00f0ff, 48, 30, 2);
+const cyanFill = new THREE.PointLight(0x00f0ff, 32, 30, 2);
 cyanFill.position.set(5, 5, -14);
 scene.add(cyanFill);
 
@@ -63,7 +63,7 @@ try {
   composer.setPixelRatio(renderer.getPixelRatio());
   composer.setSize(window.innerWidth, window.innerHeight);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), .8, .55, .62));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), .56, .45, .7));
   composer.addPass(new OutputPass());
 } catch (error) {
   console.warn('Bloom disabled, falling back to direct rendering.', error);
@@ -484,7 +484,9 @@ function buildStreetLights() {
   const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(.07, .11, 7.6, 8), metal, n);
   const arms = new THREE.InstancedMesh(new THREE.BoxGeometry(2.2, .1, .1), metal, n);
   const heads = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, .12, .34), new THREE.MeshBasicMaterial({ toneMapped: false }), n);
-  const pools = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTexture, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), n);
+  const pools = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTexture, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), n);
+  const beamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .065, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const beams = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 7.2, 20, 1, true), beamMat, n);
   const glowPos = new Float32Array(n * 3);
   const glowCol = new Float32Array(n * 3);
   let k = 0;
@@ -503,15 +505,17 @@ function buildStreetLights() {
       place(poles, px, 3.9, z);
       place(arms, px - side * 1.1, 7.55, z);
       place(heads, px - side * 2.1, 7.45, z);
+      place(beams, px - side * 2.1, 3.85, z);
       place(pools, px - side * 3.0, .04, z, -Math.PI / 2, 7, 9);
       heads.setColorAt(k, col);
+      beams.setColorAt(k, cityColor.copy(col).multiplyScalar(.38));
       pools.setColorAt(k, cityColor.copy(col).multiplyScalar(.55));
       glowPos.set([px - side * 2.1, 7.4, z], k * 3);
       glowCol.set([col.r * .9, col.g * .9, col.b * .9], k * 3);
       k++;
     }
   });
-  for (const mesh of [poles, arms, heads, pools]) { mesh.frustumCulled = false; world.add(mesh); }
+  for (const mesh of [poles, arms, heads, pools, beams]) { mesh.frustumCulled = false; world.add(mesh); }
   const glowGeo = new THREE.BufferGeometry();
   glowGeo.setAttribute('position', new THREE.BufferAttribute(glowPos, 3));
   glowGeo.setAttribute('color', new THREE.BufferAttribute(glowCol, 3));
