@@ -704,7 +704,7 @@ const gatePairs = [
   ['riftTax', 'fireRecruit'],
   ['bloodPact', 'convertWater'],
   ['electricRecruit', 'unstableClone'],
-  ['multiply', 'riftTax'],
+  ['divideArmy', 'multiply'],
 ];
 const gateColors = {
   multiply: 0xff39d7,
@@ -712,6 +712,7 @@ const gateColors = {
   bloodPact: 0xff8243,
   unstableClone: 0xb754ff,
   waterBargain: 0x32c7ff,
+  divideArmy: 0xff315c,
 };
 const randomInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
 const shuffled = (items) => {
@@ -738,6 +739,7 @@ function makeGateOffer(type) {
     const powerGain = randomInt(2, 4);
     return { type, powerGain, title: 'STORM', subtitle: `CONVERT // POWER +${powerGain}`, color: gateLabels.electric.color };
   }
+  if (type === 'divideArmy') return { type, divisor: 2, title: '÷2', subtitle: 'SPLIT FORMATION // HALF UNITS', color: gateColors.divideArmy };
   if (type === 'multiply') return { type, multiplier: 2, title: '×2', subtitle: 'CLONE THE ARMY', color: gateColors.multiply };
   if (type === 'riftTax') {
     const loss = randomInt(3, 6);
@@ -1211,6 +1213,9 @@ function applyGate(config) {
   } else if (config.type === 'multiply') {
     game.count = Math.min(99, game.count * config.multiplier);
     setFeedback(`FORMATION MULTIPLIED // \u00D7${config.multiplier}`, '#ff5be0');
+  } else if (config.type === 'divideArmy') {
+    game.count = Math.max(1, Math.floor(game.count / config.divisor));
+    setFeedback(`FORMATION DIVIDED // \u00F7${config.divisor} // -${previousCount - game.count} UNITS`, '#ff5574');
   } else if (config.type === 'convertWater') {
     game.power += config.powerGain;
     game.waterShields = Math.min(12, game.waterShields + config.wards);
