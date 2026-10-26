@@ -18,7 +18,7 @@ Pembagian kontribusi dapat disesuaikan dengan pembagian kerja akhir kelompok.
 
 Mulai dengan 12 Firekin. Pasukan berlari otomatis; geser ke kiri atau kanan untuk masuk ke gate atau menghindari shock pylon. Klik gate yang terlihat untuk mengunci arah. Bonus hanya diambil jika pusat pasukan benar-benar masuk ke bukaan gate; melewati tengah berarti kedua bonus terlewat.
 
-Ada sembilan pasang gate di sepanjang rute. Isi, nilai bonus/penalti, dan posisi kiri/kanannya diacak setiap kali run dimulai ulang. Pilihannya mencakup rekrut Fire/Electric, pengganda pasukan x2, konversi Water/Electric, **Rift Tax** yang mengurangi unit, **Blood Pact** yang menukar unit dengan power, **Unstable Clone** yang menggandakan pasukan lalu memicu recoil, serta **Water Bargain** yang menukar unit dengan ward dan power. Nilai setiap tawaran terlihat langsung pada papan gate sebelum dipilih. Gate dan pylon yang sudah dilewati tetap terlihat redup sebagai jejak rute.
+Ada sembilan pasang gate di sepanjang rute. Isi, nilai bonus/penalti, dan posisi kiri/kanannya diacak setiap kali run dimulai ulang. Pilihannya mencakup rekrut Fire/Electric, pengganda pasukan x2, pembagi pasukan ÷2, konversi Water/Electric, **Rift Tax** yang mengurangi unit, **Blood Pact** yang menukar unit dengan power, **Unstable Clone** yang menggandakan pasukan lalu memicu recoil, serta **Water Bargain** yang menukar unit dengan ward dan power. Nilai setiap tawaran terlihat langsung pada papan gate sebelum dipilih. Gate dan pylon yang sudah dilewati tetap terlihat redup sebagai jejak rute.
 
 | Gate | Dampak |
 | --- | --- |
@@ -27,6 +27,7 @@ Ada sembilan pasang gate di sepanjang rute. Isi, nilai bonus/penalti, dan posisi
 | Convert Water | Ubah formasi menjadi Water, dapat 1-3 ward dan 1 power. |
 | Convert Electric | Ubah formasi menjadi Electric dan dapat 2-4 power. |
 | Multiply | Gandakan jumlah unit. |
+| Divide Army | Bagi dua jumlah unit, dibulatkan ke bawah (minimal 1 unit). |
 | Rift Tax | Kehilangan 3-6 unit. |
 | Blood Pact | Tukar 2-4 unit untuk 4-7 power dan konversi Fire. |
 | Unstable Clone | Gandakan pasukan x3, lalu recoil mengurangi 28-42% hasil clone. |
