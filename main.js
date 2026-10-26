@@ -31,7 +31,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x14052e);
 scene.fog = new THREE.FogExp2(0x1c0a36, 0.0105);
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 260);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 440);
 camera.position.set(0, 8.8, 13.3);
 const clock = new THREE.Clock();
 
@@ -50,6 +50,7 @@ keyLight.shadow.camera.far = 58;
 keyLight.shadow.bias = -0.00045;
 keyLight.shadow.normalBias = 0.035;
 scene.add(keyLight);
+scene.add(keyLight.target);
 const magentaFill = new THREE.PointLight(0xff2bd6, 28, 24, 2);
 magentaFill.position.set(-4, 4, 2);
 scene.add(magentaFill);
@@ -75,8 +76,10 @@ try {
 const world = new THREE.Group();
 scene.add(world);
 const roadWidth = 11.5;
-const roadLength = 148;
-const roadMid = -68;
+const FINAL_BOSS_Z = -258;
+const SECOND_WAVE_Z = -157;
+const roadLength = 300;
+const roadMid = -138;
 const trackObjects = [];
 const gateTargets = [];
 const gateRecords = [];
@@ -95,6 +98,7 @@ const game = {
   count: 12,
   element: 'fire',
   power: 0,
+  waterShields: 0,
   speed: 7.25,
   elapsed: 0,
   selectedGate: null,
@@ -114,6 +118,7 @@ const game = {
   clockTime: 0,
   previousZ: 2.4,
   defeatedWave: false,
+  defeatedSecondWave: false,
   defeatedBoss: false,
 };
 world.add(game.enemyRoot);
@@ -124,12 +129,14 @@ const pointer = new THREE.Vector2();
 const dummy = new THREE.Object3D();
 const unitCountHud = document.querySelector('#unit-count');
 const elementNameHud = document.querySelector('#element-name');
+const elementAbilityHud = document.querySelector('#element-ability');
 const elementEmblem = document.querySelector('#element-emblem');
 const elementGlyph = document.querySelector('#element-glyph');
 const progressFill = document.querySelector('#progress-fill');
 const progressDot = document.querySelector('#progress-dot');
 const progressPercent = document.querySelector('#progress-percent');
 const routeStep = document.querySelector('#route-step');
+const stageLabel = document.querySelector('#stage-label');
 const feedbackEl = document.querySelector('#feedback');
 const battleBanner = document.querySelector('#battle-banner');
 const battleKicker = document.querySelector('#battle-kicker');
@@ -317,11 +324,11 @@ function buildNeonEnvironment() {
 
 function buildGroundAndRoad() {
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(320, 300),
+    new THREE.PlaneGeometry(320, 600),
     new THREE.MeshStandardMaterial({ color: 0x090618, roughness: .8, metalness: .35 }),
   );
   floor.rotation.x = -Math.PI / 2;
-  floor.position.set(0, -.48, -75);
+  floor.position.set(0, -.48, -138);
   floor.receiveShadow = true;
   world.add(floor);
 
@@ -347,7 +354,7 @@ function buildGroundAndRoad() {
   // Lane dividers sit between the three lanes (x = -2.45, 0, 2.45).
   const dashGeo = new THREE.BoxGeometry(.07, .02, 1.2);
   const dashMat = new THREE.MeshBasicMaterial({ color: hdr(NEON.cyan, 1.5), toneMapped: false });
-  for (let z = 7; z > -142; z -= 3.4) {
+  for (let z = 7; z > -292; z -= 3.4) {
     for (const x of [-1.225, 1.225]) addMesh(world, dashGeo, dashMat, [x, -.012, z], null, false, false);
   }
 
@@ -372,7 +379,7 @@ function buildGroundAndRoad() {
     shape.closePath();
     const puddle = new THREE.Mesh(new THREE.ShapeGeometry(shape, 24), puddleMat);
     puddle.rotation.x = -Math.PI / 2;
-    puddle.position.set((random() - .5) * 9.6, -.024, 6 - random() * 146);
+    puddle.position.set((random() - .5) * 9.6, -.024, 6 - random() * 284);
     puddle.rotation.z = random() * Math.PI;
     world.add(puddle);
   }
@@ -404,14 +411,14 @@ function buildCity() {
   for (const side of [-1, 1]) {
     // Near row: street-level towers hugging the sidewalk.
     let z = 26;
-    while (z > -158) {
+    while (z > -278) {
       const d = 5 + random() * 4, w = 6 + random() * 5, h = 12 + random() * 26;
       specs.push({ side, row: 0, x: side * (12.4 + w / 2), z: z - d / 2, w, d, h });
       z -= d + .5 + random() * 1.6;
     }
     // Far row: mega-towers that fill the skyline behind.
     z = 30;
-    while (z > -165) {
+    while (z > -286) {
       const d = 8 + random() * 6, w = 9 + random() * 8, h = 32 + random() * 46;
       specs.push({ side, row: 1, x: side * (25 + random() * 3 + w / 2), z: z - d / 2, w, d, h });
       z -= d + random() * 3;
@@ -497,7 +504,7 @@ function buildCity() {
 
 function buildStreetLights() {
   const zs = [];
-  for (let z = 4; z > -142; z -= 12) zs.push(z);
+  for (let z = 4; z > -280; z -= 12) zs.push(z);
   const n = zs.length * 2;
   const metal = new THREE.MeshStandardMaterial({ color: 0x1a1432, roughness: .4, metalness: .85 });
   const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(.07, .11, 7.6, 8), metal, n);
@@ -537,7 +544,7 @@ function buildStreetLights() {
 // A huge neon ring at the end of the road: the Rift itself.
 function buildRiftMegastructure() {
   const rift = new THREE.Group();
-  rift.position.set(0, 0, -138);
+  rift.position.set(0, 0, -282);
   world.add(rift);
   const ringMat = new THREE.MeshStandardMaterial({ color: 0x1a0f33, emissive: NEON.pink, emissiveIntensity: 3.2, metalness: .6, roughness: .3 });
   const innerMat = new THREE.MeshStandardMaterial({ color: 0x0f1a33, emissive: NEON.cyan, emissiveIntensity: 2.6, metalness: .6, roughness: .3 });
@@ -563,7 +570,7 @@ function buildTraffic() {
   const data = [];
   for (let i = 0; i < count; i++) {
     const side = random() < .5 ? -1 : 1;
-    data.push({ x: side * (7 + random() * 16), y: 8 + random() * 14, z: -175 + random() * 215, speed: (random() < .5 ? 1 : -1) * (14 + random() * 22), w: .32 + random() * .2, h: .16 + random() * .1, len: 2.2 + random() * 5 });
+    data.push({ x: side * (7 + random() * 16), y: 8 + random() * 14, z: -310 + random() * 350, speed: (random() < .5 ? 1 : -1) * (14 + random() * 22), w: .32 + random() * .2, h: .16 + random() * .1, len: 2.2 + random() * 5 });
     mesh.setColorAt(i, cityColor.setHex(palette[i % palette.length]).multiplyScalar(2.6));
   }
   world.add(mesh);
@@ -605,8 +612,8 @@ function updateCity(time, dt) {
   if (cars) {
     cars.data.forEach((car, i) => {
       car.z += car.speed * dt;
-      if (car.speed > 0 && car.z > 40) car.z = -175;
-      else if (car.speed < 0 && car.z < -175) car.z = 40;
+      if (car.speed > 0 && car.z > 40) car.z = -310;
+      else if (car.speed < 0 && car.z < -310) car.z = 40;
       cityDummy.position.set(car.x, car.y, car.z);
       cityDummy.rotation.set(0, 0, 0);
       cityDummy.scale.set(car.w, car.h, car.len);
@@ -686,23 +693,26 @@ function createGate(config) {
   const ring = addMesh(group, new THREE.TorusGeometry(.6, .045, 8, 42), ringMat, [0, 1.72, .11], null, false, false);
   ring.scale.set(1.62, 2.35, 1);
   const labelTexture = makeGateTexture(config.title, config.subtitle, config.color);
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.55, 1.1), new THREE.MeshBasicMaterial({ map: labelTexture, transparent: false, side: THREE.DoubleSide }));
+  const signMat = new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true, opacity: 1, side: THREE.DoubleSide });
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.55, 1.1), signMat);
   sign.position.set(0, 3.86, .015);
   sign.castShadow = false;
   group.add(sign);
   const targetMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: .001, depthWrite: false, colorWrite: false, side: THREE.DoubleSide });
   const target = new THREE.Mesh(new THREE.PlaneGeometry(2.12, 2.95), targetMaterial);
   target.position.set(0, 1.72, .2);
-  target.userData.gate = config;
+  target.userData.gate = null;
   group.add(target);
   gateTargets.push(target);
   const pad = addMesh(group, new THREE.BoxGeometry(2.55, .06, 1.85), new THREE.MeshStandardMaterial({ color: 0x120c26, metalness: .75, roughness: .38, emissive: color, emissiveIntensity: .8 }), [0, -.04, 0]);
   // Floor glow that shows the real pickup zone: the army must be inside it (|dx| <= GATE_HIT_HALF_WIDTH).
-  const hitZone = new THREE.Mesh(new THREE.PlaneGeometry(GATE_HIT_HALF_WIDTH * 2, 1.85), new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(1.4), transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const hitZoneMaterial = new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(1.4), transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const hitZone = new THREE.Mesh(new THREE.PlaneGeometry(GATE_HIT_HALF_WIDTH * 2, 1.85), hitZoneMaterial);
   hitZone.rotation.x = -Math.PI / 2;
   hitZone.position.set(0, .03, 0);
   group.add(hitZone);
-  const record = { ...config, group, ring, ringMat, portal, portalMat, frameMat, pad, resolved: false, phase: Math.random() * 6 };
+  const record = { ...config, group, ring, ringMat, portal, portalMat, frameMat, pad, signMat, hitZoneMaterial, resolved: false, phase: Math.random() * 6 };
+  target.userData.gate = record;
   gateRecords.push(record);
   return record;
 }
@@ -715,6 +725,28 @@ const gateConfig = [
   { id: 'g3l', z: -50, side: -1, type: 'multiply', title: '×2', subtitle: 'CLONE THE ARMY', color: 0xff2bd6, route: 'gate-3' },
   { id: 'g3r', z: -50, side: 1, type: 'convertElectric', title: 'STORM', subtitle: 'CONVERT FORMATION', color: gateLabels.electric.color, route: 'gate-3' },
 ];
+
+const extendedGateRoutes = [
+  { z: -90, left: 'fireRecruit', right: 'electricRecruit' },
+  { z: -113, left: 'convertWater', right: 'multiply' },
+  { z: -136, left: 'multiply', right: 'convertElectric' },
+  { z: -179, left: 'fireRecruit', right: 'electricRecruit' },
+  { z: -202, left: 'convertWater', right: 'multiply' },
+  { z: -225, left: 'multiply', right: 'convertElectric' },
+];
+const gatePresentation = {
+  fireRecruit: { title: '+5', subtitle: 'FIRE RECRUITS', color: gateLabels.fire.color },
+  electricRecruit: { title: '+5', subtitle: 'ELECTRIC RECRUITS', color: gateLabels.electric.color },
+  convertWater: { title: 'WATER', subtitle: 'WARD +2 // CONVERT', color: gateLabels.water.color },
+  convertElectric: { title: 'STORM', subtitle: 'DISABLE SHOCK PYLONS', color: gateLabels.electric.color },
+  multiply: { title: '\u00D72', subtitle: 'CLONE THE ARMY', color: 0xff2bd6 },
+};
+extendedGateRoutes.forEach((route, index) => {
+  for (const [side, type] of [[-1, route.left], [1, route.right]]) {
+    const view = gatePresentation[type];
+    gateConfig.push({ id: `g${index + 4}${side < 0 ? 'l' : 'r'}`, z: route.z, side, type, ...view, route: `gate-${index + 4}` });
+  }
+});
 
 function createObstacle(config) {
   const group = new THREE.Group();
@@ -729,7 +761,7 @@ function createObstacle(config) {
   addMesh(group, new THREE.CylinderGeometry(.22, .35, .28, 8), capMat, [.77, .18, 0]);
   const ring = addMesh(group, new THREE.TorusGeometry(1.24, .045, 6, 32), hazard, [0, .18, 0], [1, 1, .55], false, false);
   ring.rotation.x = Math.PI / 2;
-  obstacles.push({ ...config, group, frame, ring, resolved: false, phase: Math.random() * 6 });
+  obstacles.push({ ...config, group, frame, ring, core: group.children[1], coreBase: group.children[1].material.color.clone(), resolved: false, phase: Math.random() * 6 });
 }
 
 function makePedestal(x, z, size = 8, accent = NEON.cyan) {
@@ -740,8 +772,9 @@ function makePedestal(x, z, size = 8, accent = NEON.cyan) {
   return { base, halo, center, z };
 }
 const waveArena = makePedestal(0, -67, 8.8, NEON.cyan);
-const bossArena = makePedestal(0, -107, 11.4, NEON.pink);
-for (const [x, z, color] of [[-5.7, -66, NEON.cyan], [5.7, -66, NEON.pink], [-7.1, -107, NEON.pink], [7.1, -107, NEON.red]]) {
+const secondWaveArena = makePedestal(0, SECOND_WAVE_Z, 9.6, NEON.yellow);
+const bossArena = makePedestal(0, FINAL_BOSS_Z, 11.4, NEON.pink);
+for (const [x, z, color] of [[-5.7, -66, NEON.cyan], [5.7, -66, NEON.pink], [-6.1, SECOND_WAVE_Z + 1, NEON.yellow], [6.1, SECOND_WAVE_Z + 1, NEON.cyan], [-7.1, FINAL_BOSS_Z, NEON.pink], [7.1, FINAL_BOSS_Z, NEON.red]]) {
   const beacon = addMesh(world, new THREE.CylinderGeometry(.17, .34, 4.8, 8), new THREE.MeshStandardMaterial({ color: 0x1a1430, emissive: color, emissiveIntensity: 1.2, roughness: .3, metalness: .7 }), [x, 2.2, z]);
   const light = addMesh(world, new THREE.SphereGeometry(.29, 16, 12), new THREE.MeshBasicMaterial({ color: hdr(color, 2.2), toneMapped: false }), [x, 4.65, z], null, false, false);
   trackObjects.push({ object: beacon, light, beacon: true, tint: new THREE.Color(color), phase: Math.random() * 6 });
@@ -752,6 +785,14 @@ gateConfig.forEach(createGate);
 createObstacle({ id: 'o1', z: -24, x: 0 });
 createObstacle({ id: 'o2', z: -41, x: -2.55 });
 createObstacle({ id: 'o3', z: -58, x: 2.55 });
+createObstacle({ id: 'o4', z: -80, x: -2.55 });
+createObstacle({ id: 'o5', z: -101, x: 2.55 });
+createObstacle({ id: 'o6', z: -123, x: 0 });
+createObstacle({ id: 'o7', z: -145, x: -2.55 });
+createObstacle({ id: 'o8', z: -169, x: 2.55 });
+createObstacle({ id: 'o9', z: -191, x: 0 });
+createObstacle({ id: 'o10', z: -213, x: -2.55 });
+createObstacle({ id: 'o11', z: -235, x: 2.55 });
 
 function elementMaterial(element, transparent = false) {
   const palette = gateLabels[element];
@@ -909,7 +950,7 @@ function refreshElectricArcs() {
 
 function createBoss() {
   const boss = new THREE.Group();
-  boss.position.set(0, 0, -111.5);
+  boss.position.set(0, 0, FINAL_BOSS_Z - 4.5);
   const darkMetal = new THREE.MeshStandardMaterial({ color: 0x271c2c, roughness: .28, metalness: .78, emissive: 0x5a1d35, emissiveIntensity: .48 });
   const shellMat = new THREE.MeshStandardMaterial({ color: 0x4c2635, roughness: .35, metalness: .62, emissive: 0x9a3040, emissiveIntensity: .62 });
   const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffa073, emissive: 0xff472e, emissiveIntensity: 4.4, roughness: .18 });
@@ -963,6 +1004,8 @@ function setElement(nextElement) {
   createElementParticles();
   elementNameHud.textContent = palette.label;
   elementNameHud.style.color = palette.hex;
+  elementAbilityHud.textContent = getElementAbility(nextElement);
+  elementAbilityHud.style.color = nextElement === 'water' ? '#8dcfff' : nextElement === 'electric' ? '#c8fbff' : '#ffd0a8';
   elementEmblem.style.color = palette.hex;
   elementEmblem.style.borderColor = `${palette.hex}88`;
   elementEmblem.style.background = `radial-gradient(circle, ${palette.hex}33, transparent 72%)`;
@@ -974,15 +1017,28 @@ function updateHud() {
   const palette = gateLabels[game.element];
   elementNameHud.textContent = palette.label;
   elementNameHud.style.color = palette.hex;
+  elementAbilityHud.textContent = getElementAbility(game.element);
+  elementAbilityHud.style.color = game.element === 'water' ? '#8dcfff' : game.element === 'electric' ? '#c8fbff' : '#ffd0a8';
   elementEmblem.style.color = palette.hex;
   elementEmblem.style.borderColor = `${palette.hex}88`;
   elementEmblem.style.background = `radial-gradient(circle, ${palette.hex}33, transparent 72%)`;
   elementGlyph.textContent = palette.glyph;
-  const progress = THREE.MathUtils.clamp(-game.playerZ / 112, 0, 1);
+  const progress = THREE.MathUtils.clamp(-game.playerZ / Math.abs(FINAL_BOSS_Z), 0, 1);
   progressFill.style.width = `${progress * 100}%`;
   progressDot.style.left = `${progress * 100}%`;
   progressPercent.textContent = `${Math.round(progress * 100)}%`;
-  routeStep.textContent = String(Math.min(3, Math.max(1, Math.floor(progress * 3) + 1))).padStart(2, '0');
+  routeStep.textContent = String(game.routeStep).padStart(2, '0');
+  stageLabel.textContent = game.phase === 'boss'
+    ? 'FINAL BATTLE // THE RIFT CORE'
+    : progress < .28 ? 'SECTOR 01 // ASHEN CAUSEWAY'
+      : progress < .67 ? 'SECTOR 02 // SENTINEL FRONT'
+        : 'SECTOR 03 // RIFT APPROACH';
+}
+
+function getElementAbility(element) {
+  if (element === 'water') return `WARD ${game.waterShields} // BLOCK HITS`;
+  if (element === 'electric') return 'ARC // DISABLE PYLONS';
+  return 'BURN // +25% BATTLE';
 }
 
 function setFeedback(message, color = '#53f6ff') {
@@ -1002,6 +1058,7 @@ function selectGate(config) {
 function applyGate(config) {
   if (config.resolved || gateRecords.some((gate) => gate.route === config.route && gate.resolved)) return;
   for (const sibling of gateRecords) if (sibling.route === config.route) sibling.resolved = true;
+  game.routeStep = Math.min(9, game.routeStep + 1);
   game.selectedGate = null;
   if (config.type === 'fireRecruit') {
     game.count = Math.min(99, game.count + 5);
@@ -1013,8 +1070,9 @@ function applyGate(config) {
     setFeedback('FORMATION DOUBLED // ×2', '#ff5be0');
   } else if (config.type === 'convertWater') {
     game.power += 2;
+    game.waterShields = Math.min(4, game.waterShields + 2);
     setElement('water');
-    setFeedback('FORMATION REFORGED // WATER', gateLabels.water.hex);
+    setFeedback('WATER WARD +2 // BLOCK THE NEXT SHOCK PYLONS', gateLabels.water.hex);
   } else if (config.type === 'electricRecruit') {
     game.count = Math.min(99, game.count + 5);
     game.power += 2;
@@ -1023,7 +1081,7 @@ function applyGate(config) {
   } else if (config.type === 'convertElectric') {
     game.power += 3;
     setElement('electric');
-    setFeedback('FORMATION REFORGED // STORM POWER +3', gateLabels.electric.hex);
+    setFeedback('ELECTRIC ARC ONLINE // SHOCK PYLONS DISABLED', gateLabels.electric.hex);
   }
   rebuildFormation();
   updateHud();
@@ -1092,23 +1150,28 @@ function chooseGate(routeId) {
 
 function missGate(routeId) {
   for (const gate of gateRecords) if (gate.route === routeId) gate.resolved = true;
+  game.routeStep = Math.min(9, game.routeStep + 1);
   game.selectedGate = null;
   setFeedback('GATE MISSED // NO BONUS', '#ff4d6d');
 }
 
 function startEncounter(kind) {
+  const isBoss = kind === 'boss';
+  const isSecondWave = kind === 'secondWave';
+  const baseDuration = isBoss ? 5.2 : isSecondWave ? 4.1 : 3.5;
   game.phase = kind === 'boss' ? 'boss' : 'battle';
-  game.encounter = { kind, elapsed: 0, pulseTimer: 0, duration: kind === 'boss' ? 4.3 : 3.35, resolved: false };
+  game.encounter = { kind, elapsed: 0, pulseTimer: 0, duration: baseDuration * (game.element === 'electric' ? .82 : 1), resolved: false };
   game.targetX = 0;
-  game.enemyRoot.visible = kind !== 'boss';
-  game.enemyRoot.position.set(0, 0, kind === 'boss' ? -102 : -63.8);
-  if (kind === 'boss' && game.enemyBoss) game.enemyBoss.visible = true;
+  game.enemyRoot.visible = !isBoss;
+  game.enemyRoot.position.set(0, 0, isBoss ? FINAL_BOSS_Z + 5.5 : isSecondWave ? SECOND_WAVE_Z + 3.2 : -63.8);
+  if (isBoss && game.enemyBoss) game.enemyBoss.visible = true;
   battleBanner.classList.add('visible');
-  battleKicker.textContent = kind === 'boss' ? 'FINAL ENCOUNTER' : 'CONTACT // SHADOW GUARD';
-  battleTitle.textContent = kind === 'boss' ? 'RIFT WARDEN' : 'SHADOW GUARD';
-  battleSubtitle.textContent = kind === 'boss' ? 'RIFT CORE INTEGRITY' : 'ENEMY FORMATION';
+  battleKicker.textContent = isBoss ? 'FINAL ENCOUNTER' : isSecondWave ? 'SECOND CONTACT // RIFT SENTRIES' : 'CONTACT // SHADOW GUARD';
+  battleTitle.textContent = isBoss ? 'RIFT WARDEN' : isSecondWave ? 'RIFT SENTRIES' : 'SHADOW GUARD';
+  battleSubtitle.textContent = isBoss ? 'RIFT CORE INTEGRITY' : isSecondWave ? 'SENTINEL FORMATION' : 'ENEMY FORMATION';
   enemyHealth.style.width = '100%';
-  setFeedback(kind === 'boss' ? 'THE RIFT WARDEN // BREAK ITS CORE' : 'SHADOW GUARD // HOLD YOUR FORMATION', '#ff4d6d');
+  document.querySelector('#mission-title').textContent = isBoss ? 'BREAK THE RIFT WARDEN' : isSecondWave ? 'DEFEAT THE RIFT SENTRIES' : 'DEFEAT THE SHADOW GUARD';
+  setFeedback(isBoss ? 'THE RIFT WARDEN // BREAK ITS CORE' : isSecondWave ? 'RIFT SENTRIES // HOLD THE LINE' : 'SHADOW GUARD // HOLD YOUR FORMATION', '#ff4d6d');
 }
 
 function finishGame(won, copy) {
@@ -1118,7 +1181,9 @@ function finishGame(won, copy) {
   game.enemyRoot.visible = false;
   if (game.enemyBoss) game.enemyBoss.visible = false;
   battleBanner.classList.remove('visible');
-  document.querySelector('#end-kicker').textContent = won ? 'MISSION COMPLETE // 01:32' : 'FORMATION LOST // 00:00';
+  const minutes = String(Math.floor(game.elapsed / 60)).padStart(2, '0');
+  const seconds = String(Math.floor(game.elapsed % 60)).padStart(2, '0');
+  document.querySelector('#end-kicker').textContent = `${won ? 'MISSION COMPLETE' : 'FORMATION LOST'} // ${minutes}:${seconds}`;
   document.querySelector('#end-title').innerHTML = won ? 'THE RIFT<br /><em>IS SEALED.</em>' : 'THE FRONTIER<br /><em>FELL.</em>';
   document.querySelector('#end-copy').textContent = copy;
   document.querySelector('#end-units').textContent = String(game.count).padStart(2, '0');
@@ -1132,23 +1197,29 @@ function resolveEncounter() {
   if (!game.encounter || game.encounter.resolved) return;
   game.encounter.resolved = true;
   const isBoss = game.encounter.kind === 'boss';
-  const elementalBonus = game.element === 'electric' ? 1.18 : game.element === 'water' ? 1.12 : 1.06;
-  const strength = game.count * elementalBonus + game.power;
-  const threat = isBoss ? 22 : 15;
+  const isSecondWave = game.encounter.kind === 'secondWave';
+  const waterWard = game.element === 'water' && game.waterShields > 0;
+  const elementalBonus = game.element === 'fire' ? 1.25 : game.element === 'electric' ? 1.12 : 1;
+  const strength = game.count * elementalBonus + game.power + (waterWard ? 3 : 0);
+  const threat = isBoss ? 27 : isSecondWave ? 20 : 15;
   if (strength < threat) {
-    finishGame(false, isBoss ? 'The Warden overwhelmed the formation before the core could break.' : 'The Shadow Guard scattered the formation. The Rift is still ahead.');
+    finishGame(false, isBoss ? 'The Warden overwhelmed the formation before the core could break.' : isSecondWave ? 'The Rift Sentries scattered the formation before the Warden.' : 'The Shadow Guard scattered the formation. The Rift is still ahead.');
     return;
   }
   if (isBoss) {
     game.defeatedBoss = true;
-    game.count = Math.max(1, game.count - Math.max(1, Math.round(5 - game.power * .35)));
+    if (waterWard) game.waterShields--;
+    game.count = Math.max(1, game.count - Math.max(1, Math.round(5 - game.power * .2 - (waterWard ? 2 : 0) - (game.element === 'electric' ? 1 : 0))));
     updateHud();
-    spawnImpact(new THREE.Vector3(0, 2.1, -111.5), new THREE.Color(gateLabels[game.element].color), 3.2);
+    spawnImpact(new THREE.Vector3(0, 2.1, FINAL_BOSS_Z - 4.5), new THREE.Color(gateLabels[game.element].color), 3.2);
     finishGame(true, `The Warden fell to your ${gateLabels[game.element].label.toLowerCase()} formation. ${game.count} units made it out.`);
     return;
   }
-  game.defeatedWave = true;
-  const losses = Math.max(2, Math.round(8 - game.power * .5));
+  if (waterWard) game.waterShields--;
+  if (isSecondWave) game.defeatedSecondWave = true;
+  else game.defeatedWave = true;
+  const baseLosses = isSecondWave ? 7 : 6;
+  const losses = Math.max(2, Math.round(baseLosses - game.power * .25 - (waterWard ? 2 : 0) - (game.element === 'electric' ? 2 : 0)));
   game.count = Math.max(1, game.count - losses);
   rebuildFormation();
   updateHud();
@@ -1157,7 +1228,9 @@ function resolveEncounter() {
   game.enemyRoot.visible = false;
   battleBanner.classList.remove('visible');
   game.targetX = 0;
-  setFeedback(`SHADOW GUARD CLEARED // −${losses} UNITS`, '#53f6ff');
+  document.querySelector('#mission-title').textContent = isSecondWave ? 'REACH THE RIFT WARDEN' : 'REACH THE RIFT SENTRIES';
+  document.querySelector('#mission-copy').textContent = isSecondWave ? 'Last stretch. Choose your final gates.' : 'First guard defeated. Keep building your army.';
+  setFeedback(`${isSecondWave ? 'RIFT SENTRIES' : 'SHADOW GUARD'} CLEARED // -${losses} UNITS`, '#53f6ff');
 }
 
 function handleWorldEvents(previousZ, currentZ) {
@@ -1172,6 +1245,18 @@ function handleWorldEvents(previousZ, currentZ) {
     obstacle.resolved = true;
     const dx = Math.abs(game.playerX - obstacle.x);
     if (dx < 1.38) {
+      if (game.element === 'electric') {
+        setFeedback('ELECTRIC ARC // SHOCK PYLON DISABLED', gateLabels.electric.hex);
+        spawnImpact(new THREE.Vector3(obstacle.x, 1, obstacle.z), new THREE.Color(gateLabels.electric.color), 1.8);
+        continue;
+      }
+      if (game.element === 'water' && game.waterShields > 0) {
+        game.waterShields--;
+        updateHud();
+        setFeedback(`WATER WARD ABSORBED THE HIT // ${game.waterShields} LEFT`, gateLabels.water.hex);
+        spawnImpact(new THREE.Vector3(game.playerX, 1.2, game.playerZ), new THREE.Color(gateLabels.water.color), 1.8);
+        continue;
+      }
       const loss = Math.min(3, Math.max(1, game.count - 1));
       game.count -= loss;
       rebuildFormation();
@@ -1183,7 +1268,8 @@ function handleWorldEvents(previousZ, currentZ) {
     }
   }
   if (!game.defeatedWave && previousZ > -67 && currentZ <= -67) startEncounter('wave');
-  if (game.defeatedWave && !game.defeatedBoss && previousZ > -107 && currentZ <= -107) startEncounter('boss');
+  if (game.defeatedWave && !game.defeatedSecondWave && previousZ > SECOND_WAVE_Z && currentZ <= SECOND_WAVE_Z) startEncounter('secondWave');
+  if (game.defeatedSecondWave && !game.defeatedBoss && previousZ > FINAL_BOSS_Z && currentZ <= FINAL_BOSS_Z) startEncounter('boss');
 }
 
 function updateFormation(time) {
@@ -1245,18 +1331,28 @@ function updateWorldObjects(time) {
   }
   for (const gate of gateRecords) {
     const pulse = .84 + .27 * Math.sin(time * 2.8 + gate.phase);
+    const dimmed = gate.resolved;
     gate.ring.rotation.z += .006;
-    gate.ringMat.emissiveIntensity = gate.id === game.selectedGate ? 3.6 : pulse * 2.2;
-    gate.portalMat.opacity = .09 + .07 * (Math.sin(time * 2 + gate.phase) * .5 + .5);
-    gate.group.scale.y = gate.resolved ? .35 : 1;
-    gate.group.visible = !gate.resolved;
+    gate.ringMat.emissiveIntensity = dimmed ? .12 : gate.id === game.selectedGate ? 3.6 : pulse * 2.2;
+    gate.portalMat.opacity = dimmed ? .025 : .09 + .07 * (Math.sin(time * 2 + gate.phase) * .5 + .5);
+    gate.frameMat.emissiveIntensity = dimmed ? .18 : 1.9;
+    gate.pad.material.emissiveIntensity = dimmed ? .12 : .8;
+    gate.signMat.opacity = dimmed ? .42 : 1;
+    gate.hitZoneMaterial.opacity = dimmed ? .025 : .2;
+    gate.group.scale.y = 1;
+    gate.group.visible = true;
   }
   for (const obstacle of obstacles) {
     obstacle.ring.rotation.z += .01;
-    obstacle.frame.material.emissiveIntensity = .92 + .54 * Math.sin(time * 3.3 + obstacle.phase);
-    obstacle.group.visible = !obstacle.resolved;
+    obstacle.frame.material.emissiveIntensity = obstacle.resolved ? .14 : .92 + .54 * Math.sin(time * 3.3 + obstacle.phase);
+    obstacle.core.material.transparent = true;
+    obstacle.core.material.opacity = obstacle.resolved ? .24 : 1;
+    obstacle.core.material.color.copy(obstacle.coreBase).multiplyScalar(obstacle.resolved ? .28 : 1);
+    obstacle.group.scale.setScalar(obstacle.resolved ? .58 : 1);
+    obstacle.group.visible = true;
   }
   waveArena.halo.rotation.z += .002;
+  secondWaveArena.halo.rotation.z -= .0023;
   bossArena.halo.rotation.z -= .0026;
   if (game.enemyBoss) {
     game.enemyBoss.userData.core.rotation.y += .03;
@@ -1272,7 +1368,8 @@ function updateEncounter(dt) {
   encounter.pulseTimer += dt;
   if (encounter.pulseTimer >= .64) {
     encounter.pulseTimer = 0;
-    const origin = encounter.kind === 'boss' ? new THREE.Vector3(0, 2.4, -106.2) : new THREE.Vector3((Math.random() - .5) * 3, 1, -64.5);
+    const encounterZ = encounter.kind === 'boss' ? FINAL_BOSS_Z - 4.5 : encounter.kind === 'secondWave' ? SECOND_WAVE_Z + 2.5 : -64.5;
+    const origin = new THREE.Vector3(encounter.kind === 'boss' ? 0 : (Math.random() - .5) * 3, encounter.kind === 'boss' ? 2.4 : 1, encounterZ);
     spawnImpact(origin, new THREE.Color(gateLabels[game.element].color), encounter.kind === 'boss' ? 1.15 : .8);
     const remaining = Math.max(0, 1 - encounter.elapsed / encounter.duration);
     enemyHealth.style.width = `${remaining * 100}%`;
@@ -1338,11 +1435,12 @@ window.addEventListener('keydown', (event) => {
 function startRun() {
   if (!game.modelReady || game.phase !== 'menu') return;
   game.phase = 'running';
+  game.elapsed = 0;
   pauseButton.classList.remove('is-hidden');
   startScreen.classList.add('is-hidden');
   document.querySelector('#hint-text').textContent = 'DODGE THE SHOCK PYLONS';
   document.querySelector('#mission-title').textContent = 'REACH THE RIFT';
-  document.querySelector('#mission-copy').textContent = 'Build your formation. Lead them through.';
+  document.querySelector('#mission-copy').textContent = 'Fire strikes harder. Water wards block pylons. Electric arcs disable them.';
   setFeedback('FORMATION DEPLOYED // CHOOSE A GATE', '#53f6ff');
 }
 
@@ -1358,10 +1456,13 @@ function resetRun() {
   game.count = 12;
   game.element = 'fire';
   game.power = 0;
+  game.waterShields = 0;
   game.selectedGate = null;
   game.routeStep = 1;
   game.defeatedWave = false;
+  game.defeatedSecondWave = false;
   game.defeatedBoss = false;
+  game.elapsed = 0;
   game.encounter = null;
   for (const gate of gateRecords) gate.resolved = false;
   for (const obstacle of obstacles) obstacle.resolved = false;
@@ -1401,7 +1502,7 @@ document.querySelector('#resume-button').addEventListener('click', resumeGame);
 function update(dt) {
   if (game.phase === 'paused') return;
   game.clockTime += dt;
-  game.elapsed += dt;
+  if (['running', 'battle', 'boss'].includes(game.phase)) game.elapsed += dt;
   updateWorldObjects(game.clockTime);
   updateCity(game.clockTime, dt);
   updateFx(dt);
@@ -1429,6 +1530,9 @@ function update(dt) {
   }
 
   const cameraX = game.playerX * .33;
+  keyLight.position.set(game.playerX - 8, 18, game.playerZ + 8);
+  keyLight.target.position.set(game.playerX, 0, game.playerZ - 4);
+  keyLight.target.updateMatrixWorld();
   const desiredCamera = new THREE.Vector3(cameraX, 8.7, game.playerZ + 12.7);
   camera.position.lerp(desiredCamera, Math.min(1, dt * 2.6));
   camera.lookAt(game.playerX * .45, 2.2, game.playerZ - 13);

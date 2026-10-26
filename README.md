@@ -16,7 +16,7 @@ Pembagian kontribusi dapat disesuaikan dengan pembagian kerja akhir kelompok.
 
 ## Gameplay dan objective
 
-Mulai dengan 12 Firekin. Pasukan berlari otomatis; geser ke kiri atau kanan untuk masuk ke salah satu gate atau menghindari shock pylon. Klik gate yang terlihat untuk mengunci pilihan. Jika gate dilewati tanpa diklik, pasukan mengambil gate yang paling dekat dengan posisinya.
+Mulai dengan 12 Firekin. Pasukan berlari otomatis; geser ke kiri atau kanan untuk masuk ke gate atau menghindari shock pylon. Klik gate yang terlihat untuk mengunci arah. Bonus hanya diambil jika pusat pasukan benar-benar masuk ke bukaan gate; melewati tengah berarti kedua bonus terlewat.
 
 | Urutan | Pilihan gate |
 | --- | --- |
@@ -24,7 +24,9 @@ Mulai dengan 12 Firekin. Pasukan berlari otomatis; geser ke kiri atau kanan untu
 | 2 | `Convert to Water` atau `+5 Electric Recruits` |
 | 3 | `×2 Clone the Army` atau `Convert to Electric` |
 
-Hindari tiga shock pylon. Pasukan yang cukup kuat dapat melewati Shadow Guard dan mengalahkan Rift Warden. **Menang** jika kekuatan pasukan mengalahkan Warden; **kalah** jika pasukan kalah dalam salah satu battle. Gunakan tombol restart untuk mengulang dari awal.
+Enam pasang gate tambahan muncul di dua bagian rute berikutnya, jadi ada sembilan pilihan gate sebelum boss. Rute mencakup sebelas shock pylon dan dua pertarungan pasukan sebelum pertarungan final melawan Rift Warden. Gate atau pylon yang sudah dilewati tetap terlihat redup sebagai jejak rute.
+
+Setiap elemen punya efek gameplay: **Fire** memberi bonus kekuatan battle 25%; **Water** memberi dua ward yang menyerap tabrakan pylon dan membantu mengurangi korban battle; **Electric** menonaktifkan pylon yang dilewati pasukan dan mempercepat animasi battle. Efek aktif ditampilkan di HUD. **Menang** jika kekuatan pasukan mengalahkan Warden; **kalah** jika pasukan kalah dalam salah satu battle. Gunakan tombol restart untuk mengulang dari awal.
 
 ## Kontrol
 
@@ -39,6 +41,8 @@ Hindari tiga shock pylon. Pasukan yang cukup kuat dapat melewati Shadow Guard da
 - Model prajurit low-poly **GLTF buatan project** dengan struktur parent–child. Material pasukan berubah secara PBR untuk Fire, Water transparan, dan Electric emissive.
 - Formation leader dan followers; jumlah pada HUD mengikuti pasukan aktual (hingga 99), dengan maksimum 24 model crowd dirender agar scene tetap ringan.
 - Gate emissive dengan portal dan tekstur procedural yang bergerak, serta panel pilihan yang dapat dipilih memakai `THREE.Raycaster`.
+- Tiga kemampuan elemen yang mengubah strategi: bonus battle Fire, ward Water, dan Electric yang mematikan shock pylon. Pilihan gate hanya berlaku jika formation masuk ke bukaan gate; opsi yang terlewat tetap tampak redup.
+- Rute sepanjang sekitar 260 unit dengan sembilan pasang gate, sebelas hazard, dua wave battle, lalu boss final.
 - Animasi lari unit, portal/gate pulse, pylon, boss, dan particle system untuk fire sparks, water bubbles, electric arcs, serta shockwave saat gate/battle.
 - Minimal dua lampu, shadow map, object yang cast shadow, surface yang receive shadow, HUD progress dan objective, battle health feedback, win/lose state, dan reset.
 

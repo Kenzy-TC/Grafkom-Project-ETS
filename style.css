@@ -71,14 +71,15 @@ kbd { font-family: var(--body); }
 .progress-track > span { display: block; width: 0%; height: 100%; background: linear-gradient(90deg, var(--pink), var(--cyan)); box-shadow: 0 0 10px rgba(0, 240, 255, .85); transition: width .2s linear; }
 .progress-track > i { position: absolute; top: 50%; left: 0%; width: 9px; height: 9px; border: 1px solid #fff; background: var(--yellow); box-shadow: 0 0 12px var(--yellow); transform: translate(-50%, -50%) rotate(45deg); transition: left .2s linear; }
 .progress-stops { font-size: 9px; color: var(--faint); }
-.crew-readout { --fill: rgba(9, 5, 26, .78); justify-self: end; min-width: 276px; height: 56px; display: flex; align-items: center; gap: 12px; padding: 6px 16px 6px 9px; }
+.crew-readout { --fill: rgba(9, 5, 26, .78); justify-self: end; min-width: 296px; height: 56px; display: flex; align-items: center; gap: 12px; padding: 6px 16px 6px 9px; }
 .crew-emblem { flex: none; width: 38px; height: 38px; display: grid; place-items: center; color: var(--fire); border: 1px solid rgba(255, 90, 54, .55); background: radial-gradient(circle, rgba(255, 90, 54, .25), transparent 72%); box-shadow: inset 0 0 17px rgba(255, 90, 54, .15); transition: color .25s, border-color .25s, background .25s; }
 .crew-emblem span { font-size: 18px; text-shadow: 0 0 13px currentColor; }
 .crew-numbers { display: flex; flex-direction: column; gap: 2px; min-width: 55px; }
 .crew-numbers strong { font: 900 24px/1 var(--display); letter-spacing: .03em; text-shadow: 0 0 12px rgba(0, 240, 255, .5); }
 .crew-divider { height: 28px; width: 1px; margin: 0 3px; background: linear-gradient(180deg, transparent, var(--pink), transparent); }
-.crew-element { display: flex; flex-direction: column; gap: 3px; min-width: 84px; }
-.crew-element strong { font: 700 14px var(--body); letter-spacing: .14em; color: var(--fire); text-shadow: 0 0 10px currentColor; }
+.crew-element { display: flex; flex-direction: column; gap: 2px; min-width: 110px; }
+.crew-element strong { font: 700 13px var(--body); letter-spacing: .12em; color: var(--fire); text-shadow: 0 0 10px currentColor; }
+.crew-element small { color: #c2badf; font: 600 8px/1.1 var(--body); letter-spacing: .055em; white-space: nowrap; }
 
 /* ---------- Objective + stage ---------- */
 .mission-card { --bk: var(--pink); --fill: linear-gradient(115deg, rgba(14, 5, 32, .86), rgba(14, 5, 32, .4)); position: absolute; z-index: 3; top: 132px; left: 4.1vw; width: 252px; display: flex; gap: 12px; padding: 14px 16px; transition: opacity .3s; }
@@ -187,7 +188,7 @@ h1 em, .end-card h2 em { color: var(--yellow); font-style: normal; text-shadow: 
 @media (max-width: 900px) {
   .topbar { grid-template-columns: 1fr auto; height: 88px; padding: 14px 24px; gap: 12px; }
   .run-progress { display: none; }
-  .crew-readout { min-width: 250px; }
+  .crew-readout { min-width: 280px; }
   .mission-card { top: 108px; left: 24px; }
   .stage-tag { top: 119px; right: 24px; }
   .bottom-hud { inset-inline: 24px; }
@@ -197,8 +198,8 @@ h1 em, .end-card h2 em { color: var(--yellow); font-style: normal; text-shadow: 
   .topbar { padding: 12px 15px; height: 76px; }
   .brand-lockup { gap: 8px; }.brand-mark { transform: scale(.8) skewY(-13deg); width: 27px; }.brand-copy .eyebrow { display: none; }
   .brand-copy > strong { font-size: 12px; white-space: normal; line-height: 1.15; }
-  .crew-readout { min-width: 0; width: 166px; height: 48px; gap: 7px; padding: 4px 8px 4px 6px; }
-  .crew-emblem { width: 30px; height: 30px; }.crew-emblem span { font-size: 15px; }.crew-numbers { min-width: 34px; }.crew-numbers .eyebrow { font-size: 7px; letter-spacing: .1em; }.crew-numbers strong { font-size: 19px; }.crew-divider { margin: 0; }.crew-element { min-width: 50px; }.crew-element .eyebrow { font-size: 7px; letter-spacing: .1em; }.crew-element strong { font-size: 10px; letter-spacing: .08em; }
+  .crew-readout { min-width: 0; width: 184px; height: 48px; gap: 7px; padding: 4px 8px 4px 6px; }
+  .crew-emblem { width: 30px; height: 30px; }.crew-emblem span { font-size: 15px; }.crew-numbers { min-width: 34px; }.crew-numbers .eyebrow { font-size: 7px; letter-spacing: .1em; }.crew-numbers strong { font-size: 19px; }.crew-divider { margin: 0; }.crew-element { min-width: 79px; }.crew-element .eyebrow { font-size: 7px; letter-spacing: .1em; }.crew-element strong { font-size: 10px; letter-spacing: .08em; }.crew-element small { font-size: 6px; letter-spacing: 0; }
   .mission-card { top: 90px; left: 15px; width: 200px; padding: 10px; gap: 8px; }.mission-card p { font-size: 10px; }.mission-card strong { font-size: 11px; }.mission-icon { width: 23px; height: 23px; }
   .stage-tag { top: 103px; right: 15px; max-width: 140px; font-size: 8px; line-height: 1.5; letter-spacing: .08em; text-align: right; }
   .bottom-hud { inset-inline: 12px; bottom: 13px; justify-content: center; height: auto; }.hint-chip, .objective-chip { display: none; }.steer-panel { min-width: 300px; height: 44px; gap: 12px; padding-inline: 10px; }.steer-key > span { display: none; }.steer-center { width: 58px; }
