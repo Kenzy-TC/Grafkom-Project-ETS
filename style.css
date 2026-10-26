@@ -244,3 +244,29 @@ h1 em, .end-card h2 em {
 .primary-button { background: #ff4fd8; }
 .primary-button:hover, .primary-button:focus-visible { background: #d66bff; }
 .primary-button:active { background: #b84dff; }
+
+/* Pause and resume overlay */
+.pause-button {
+  position: absolute; z-index: 4; top: auto; right: 4.1vw; bottom: 88px; min-width: 106px;
+  padding: 10px 14px; border: 1px solid rgba(255, 43, 214, .55);
+  background: rgba(9, 5, 26, .82); color: var(--pink);
+  font: 700 11px var(--body); letter-spacing: .12em; cursor: pointer; backdrop-filter: blur(8px);
+}
+.pause-button span { margin-left: 8px; color: var(--cyan); }
+.pause-button:hover, .pause-button:focus-visible { border-color: var(--cyan); color: var(--cyan); outline: none; }
+.screen-pause { z-index: 8; background: rgba(5, 2, 16, .56); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.pause-card {
+  width: min(440px, calc(100vw - 36px)); padding: 32px 36px 26px;
+  border: 1px solid rgba(255, 43, 214, .38);
+  background: linear-gradient(145deg, rgba(18, 8, 42, .97), rgba(8, 4, 24, .96));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .55), 0 0 28px rgba(255, 43, 214, .12);
+}
+.pause-card h2 { margin: 16px 0 10px; color: var(--ink); font: 900 clamp(38px, 5vw, 52px)/1 var(--display); }
+.pause-card h2 em { color: var(--pink); font-style: normal; text-shadow: 0 0 12px rgba(255, 43, 214, .25); }
+.pause-card p { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.pause-card .primary-button { clip-path: none; }
+.pause-hint { margin-top: 16px; color: var(--faint); font: 600 10px var(--body); letter-spacing: .13em; text-align: center; }
+@media (max-width: 620px) {
+  .pause-button { top: auto; bottom: 72px; right: 15px; min-width: 88px; padding: 8px 10px; font-size: 9px; }
+  .pause-card { padding: 25px 22px 21px; }
+}

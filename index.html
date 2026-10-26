@@ -47,6 +47,8 @@
         </div>
       </section>
 
+      <button class="pause-button is-hidden" id="pause-button" type="button" aria-label="Pause game">PAUSE <span>Ⅱ</span></button>
+
       <section class="mission-card" id="mission-card" aria-label="Objective">
         <div class="mission-icon"><span>◎</span></div>
         <div><span class="eyebrow">PRIMARY DIRECTIVE</span><strong id="mission-title">REACH THE RIFT</strong><p id="mission-copy">Build your formation. Lead them through.</p></div>
@@ -77,6 +79,16 @@
         </div>
         <div class="start-coordinate">COORD 03.8175° S<br />RIFTWAY / EAST SPAN</div>
         <div class="start-stamp"><span>OPERATION</span><strong>LAST<br />LIGHT</strong><i>●</i></div>
+      </section>
+
+      <section class="screen screen-pause is-hidden" id="pause-screen" aria-label="Game dijeda">
+        <div class="pause-card">
+          <span class="eyebrow">RIFTWAY PROTOCOL // PAUSED</span>
+          <h2>GAME<br /><em>PAUSED.</em></h2>
+          <p>Formation on standby. Take a moment, then return to the run.</p>
+          <button class="primary-button" id="resume-button" type="button"><span>RESUME RUN</span><b>▶</b></button>
+          <div class="pause-hint">PRESS ESC OR P TO RESUME</div>
+        </div>
       </section>
 
       <section class="screen screen-end is-hidden" id="end-screen" aria-label="Hasil permainan">

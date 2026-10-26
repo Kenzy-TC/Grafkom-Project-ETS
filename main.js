@@ -11,6 +11,8 @@ const startScreen = document.querySelector('#start-screen');
 const endScreen = document.querySelector('#end-screen');
 const startButton = document.querySelector('#start-button');
 const restartButton = document.querySelector('#restart-button');
+const pauseButton = document.querySelector('#pause-button');
+const pauseScreen = document.querySelector('#pause-screen');
 const gateLabels = {
   fire: { color: 0xff5a36, hex: '#ff5a36', label: 'FIRE', glyph: '✦', name: 'FIREKIN' },
   water: { color: 0x2e9bff, hex: '#2e9bff', label: 'WATER', glyph: '≈', name: 'TIDEBORN' },
@@ -86,6 +88,7 @@ world.add(troopRoot, vfxRoot);
 
 const game = {
   phase: 'menu',
+  pausedFrom: null,
   playerZ: 2.4,
   playerX: 0,
   targetX: 0,
@@ -114,6 +117,7 @@ const game = {
   defeatedBoss: false,
 };
 world.add(game.enemyRoot);
+game.enemyRoot.visible = false;
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -347,14 +351,29 @@ function buildGroundAndRoad() {
     for (const x of [-1.225, 1.225]) addMesh(world, dashGeo, dashMat, [x, -.012, z], null, false, false);
   }
 
-  // Rain puddles that mirror the neon environment.
-  const puddleMat = new THREE.MeshStandardMaterial({ color: 0x040210, roughness: .05, metalness: .95, envMap: neonEnvTexture, envMapIntensity: 1.7, polygonOffset: true, polygonOffsetFactor: -2 });
-  const puddleGeo = new THREE.CircleGeometry(1, 24);
+  // Irregular, glossy rain puddles pick up the neon environment softly.
+  const puddleMat = new THREE.MeshPhysicalMaterial({ color: 0x242037, roughness: .2, metalness: .58, clearcoat: .9, clearcoatRoughness: .14, envMap: neonEnvTexture, envMapIntensity: 1.35, polygonOffset: true, polygonOffsetFactor: -2 });
   for (let i = 0; i < 18; i++) {
-    const puddle = new THREE.Mesh(puddleGeo, puddleMat);
+    const shape = new THREE.Shape();
+    const points = [];
+    const pointCount = 12;
+    const radiusX = .8 + random() * 1.5, radiusY = 1.4 + random() * 3.2;
+    const phase = random() * Math.PI * 2;
+    for (let j = 0; j < pointCount; j++) {
+      const angle = phase + j / pointCount * Math.PI * 2;
+      const uneven = .72 + random() * .42;
+      points.push(new THREE.Vector2(Math.cos(angle) * radiusX * uneven, Math.sin(angle) * radiusY * uneven));
+    }
+    shape.moveTo(points[0].x, points[0].y);
+    for (let j = 1; j <= pointCount; j++) {
+      const previous = points[(j - 1) % pointCount], current = points[j % pointCount];
+      shape.quadraticCurveTo(previous.x, previous.y, (previous.x + current.x) * .5, (previous.y + current.y) * .5);
+    }
+    shape.closePath();
+    const puddle = new THREE.Mesh(new THREE.ShapeGeometry(shape, 24), puddleMat);
     puddle.rotation.x = -Math.PI / 2;
     puddle.position.set((random() - .5) * 9.6, -.024, 6 - random() * 146);
-    puddle.scale.set(.8 + random() * 1.5, 1.4 + random() * 3.2, 1);
+    puddle.rotation.z = random() * Math.PI;
     world.add(puddle);
   }
 }
@@ -484,16 +503,14 @@ function buildStreetLights() {
   const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(.07, .11, 7.6, 8), metal, n);
   const arms = new THREE.InstancedMesh(new THREE.BoxGeometry(2.2, .1, .1), metal, n);
   const heads = new THREE.InstancedMesh(new THREE.BoxGeometry(1.1, .12, .34), new THREE.MeshBasicMaterial({ toneMapped: false }), n);
-  const pools = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTexture, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), n);
-  const beamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .065, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-  const beams = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 7.2, 20, 1, true), beamMat, n);
-  const glowPos = new Float32Array(n * 3);
-  const glowCol = new Float32Array(n * 3);
+  const pools = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTexture, transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), n);
+  const beamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .045, side: THREE.DoubleSide, blending: THREE.NormalBlending, depthWrite: false, toneMapped: true });
+  const beams = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 7.2, 32, 1, true), beamMat, n);
   let k = 0;
   zs.forEach((z, zi) => {
     for (const side of [-1, 1]) {
       const hex = (zi + (side < 0 ? 0 : 1)) % 2 === 0 ? NEON.cyan : NEON.pink;
-      const col = hdr(hex, 2.4);
+      const col = hdr(hex, 1.55);
       const px = side * 6.7;
       const place = (mesh, x, y, zz, rx = 0, sx = 1, sy = 1) => {
         cityDummy.position.set(x, y, zz);
@@ -508,20 +525,13 @@ function buildStreetLights() {
       place(beams, px - side * 2.1, 3.85, z);
       place(pools, px - side * 3.0, .04, z, -Math.PI / 2, 7, 9);
       heads.setColorAt(k, col);
-      beams.setColorAt(k, cityColor.copy(col).multiplyScalar(.38));
-      pools.setColorAt(k, cityColor.copy(col).multiplyScalar(.55));
-      glowPos.set([px - side * 2.1, 7.4, z], k * 3);
-      glowCol.set([col.r * .9, col.g * .9, col.b * .9], k * 3);
+      beams.setColorAt(k, cityColor.copy(col).multiplyScalar(.14));
+      pools.setColorAt(k, cityColor.copy(col).multiplyScalar(.22));
       k++;
     }
   });
   for (const mesh of [poles, arms, heads, pools, beams]) { mesh.frustumCulled = false; world.add(mesh); }
-  const glowGeo = new THREE.BufferGeometry();
-  glowGeo.setAttribute('position', new THREE.BufferAttribute(glowPos, 3));
-  glowGeo.setAttribute('color', new THREE.BufferAttribute(glowCol, 3));
-  const glow = new THREE.Points(glowGeo, new THREE.PointsMaterial({ map: glowTexture, size: 4.2, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
-  glow.frustumCulled = false;
-  world.add(glow);
+
 }
 
 // A huge neon ring at the end of the road: the Rift itself.
@@ -1103,6 +1113,7 @@ function startEncounter(kind) {
 
 function finishGame(won, copy) {
   game.phase = won ? 'won' : 'lost';
+  pauseButton.classList.add('is-hidden');
   game.encounter = null;
   game.enemyRoot.visible = false;
   if (game.enemyBoss) game.enemyBoss.visible = false;
@@ -1313,6 +1324,11 @@ document.querySelector('#steer-right').addEventListener('click', () => steer(1))
 
 window.addEventListener('keydown', (event) => {
   if (['ArrowLeft', 'ArrowRight', ' '].includes(event.key)) event.preventDefault();
+  if (event.key === 'Escape' || event.key.toLowerCase() === 'p') {
+    if (game.phase === 'paused') resumeGame();
+    else pauseGame();
+    return;
+  }
   if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') steer(-1);
   if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') steer(1);
   if ((event.key === 'Enter' || event.key === ' ') && game.phase === 'menu') startRun();
@@ -1322,6 +1338,7 @@ window.addEventListener('keydown', (event) => {
 function startRun() {
   if (!game.modelReady || game.phase !== 'menu') return;
   game.phase = 'running';
+  pauseButton.classList.remove('is-hidden');
   startScreen.classList.add('is-hidden');
   document.querySelector('#hint-text').textContent = 'DODGE THE SHOCK PYLONS';
   document.querySelector('#mission-title').textContent = 'REACH THE RIFT';
@@ -1331,6 +1348,9 @@ function startRun() {
 
 function resetRun() {
   game.phase = 'menu';
+  game.pausedFrom = null;
+  pauseScreen.classList.add('is-hidden');
+  pauseButton.classList.add('is-hidden');
   game.playerZ = 2.4;
   game.previousZ = 2.4;
   game.playerX = 0;
@@ -1361,10 +1381,25 @@ function resetRun() {
   updateHud();
 }
 
+function pauseGame() {
+  if (!['running', 'battle', 'boss'].includes(game.phase)) return;
+  game.pausedFrom = game.phase;
+  game.phase = 'paused';
+  pauseScreen.classList.remove('is-hidden');
+}
+function resumeGame() {
+  if (game.phase !== 'paused') return;
+  game.phase = game.pausedFrom || 'running';
+  game.pausedFrom = null;
+  pauseScreen.classList.add('is-hidden');
+}
 startButton.addEventListener('click', startRun);
 restartButton.addEventListener('click', resetRun);
+pauseButton.addEventListener('click', pauseGame);
+document.querySelector('#resume-button').addEventListener('click', resumeGame);
 
 function update(dt) {
+  if (game.phase === 'paused') return;
   game.clockTime += dt;
   game.elapsed += dt;
   updateWorldObjects(game.clockTime);
