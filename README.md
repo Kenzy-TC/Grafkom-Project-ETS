@@ -9,8 +9,8 @@ Pimpin pasukan Fire, Water, atau Electric menyeberangi Ashen Causeway. Pilihan g
 
 | Anggota | NRP | Kontribusi |
 | --- | --- | --- |
-| Mario Napitupulu | 5025241085 | Scene dan environment, gate, crowd formation, model GLTF |
-| Nathanael Oliver Amadhika Yuswana | 5025241109 | Gameplay, battle dan state game, elemental VFX, HUD |
+| Mario Napitupulu | 5025241085 | Scene dan environment, gate, crowd formation, model GLTF, HUD |
+| Nathanael Oliver Amadhika Yuswana | 5025241109 | Gameplay, battle dan state game, elemental VFX, HUD, Scene dan environtment |
 
 Pembagian kontribusi dapat disesuaikan dengan pembagian kerja akhir kelompok.
 
