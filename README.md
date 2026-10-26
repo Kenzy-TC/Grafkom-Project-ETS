@@ -95,4 +95,4 @@ Workflow `.github/workflows/deploy.yml` otomatis mengunggah folder `Praktikum-UT
 
 ## Screenshot
 
-`screenshots/main.png` memperlihatkan scene, formation awal, HUD, dan layar deployment project.
+`screenshots/screenshot.png` memperlihatkan scene terbaru, formation awal, HUD, dan layar deployment project.
