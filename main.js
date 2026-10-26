@@ -904,7 +904,7 @@ function createFallbackWarrior() {
 function recolorWarrior(model, element) {
   const oldMaterials = [];
   model.traverse((child) => {
-    if (!child.isMesh) return;
+    if (!child.isMesh || child.userData.preserveMaterial) return;
     if (!oldMaterials.includes(child.material)) oldMaterials.push(child.material);
     child.material = elementMaterial(element, element === 'water');
     child.castShadow = true;
@@ -933,6 +933,25 @@ function makeUnit() {
   const unit = cloneWarrior();
   const anchor = new THREE.Group();
   anchor.add(unit.group);
+  // Small, readable silhouette changes keep the formation from looking cloned.
+  const accentColors = [0x00f0ff, 0xff2bd6, 0xfcee0a, 0x8a3dff];
+  const accent = new THREE.MeshStandardMaterial({ color: accentColors[game.visualUnits.length % accentColors.length], emissive: accentColors[game.visualUnits.length % accentColors.length], emissiveIntensity: 1.35, metalness: .55, roughness: .24 });
+  const variant = game.visualUnits.length % 4;
+  if (variant === 0) {
+    addMesh(unit.group, new THREE.ConeGeometry(.12, .42, 5), accent, [-.3, 1.48, -.02]).rotation.z = .42;
+    addMesh(unit.group, new THREE.ConeGeometry(.12, .42, 5), accent, [.3, 1.48, -.02]).rotation.z = -.42;
+  } else if (variant === 1) {
+    const crest = addMesh(unit.group, new THREE.TorusGeometry(.22, .055, 6, 12, Math.PI), accent, [0, 1.88, -.02]);
+    crest.rotation.z = Math.PI;
+    addMesh(unit.group, new THREE.BoxGeometry(.48, .1, .42), accent, [0, .48, .02]);
+  } else if (variant === 2) {
+    addMesh(unit.group, new THREE.IcosahedronGeometry(.17, 0), accent, [-.47, 1.36, .02]);
+    addMesh(unit.group, new THREE.IcosahedronGeometry(.17, 0), accent, [.47, 1.36, .02]);
+  } else {
+    addMesh(unit.group, new THREE.ConeGeometry(.2, .48, 4), accent, [0, 2.16, -.02]);
+    addMesh(unit.group, new THREE.BoxGeometry(.12, .5, .12), accent, [0, 1.14, .44]);
+  }
+  unit.group.traverse((child) => { if (child.isMesh && child.material === accent) child.userData.preserveMaterial = true; });
   troopRoot.add(anchor);
   unit.anchor = anchor;
   unit.group.scale.setScalar(1);
@@ -1038,6 +1057,13 @@ function createBoss() {
   addMesh(boss, new THREE.CylinderGeometry(.7, 1.12, 2.15, 8), darkMetal, [0, 1.52, 0]);
   addMesh(boss, new THREE.SphereGeometry(.76, 10, 8), shellMat, [0, 2.92, 0]);
   addMesh(boss, new THREE.TorusGeometry(.5, .16, 7, 9), shellMat, [0, 3.72, 0]);
+  // Crown blades and a layered chest plate give the Warden a stronger boss silhouette.
+  for (let i = 0; i < 5; i++) {
+    const angle = (i / 4 - .5) * 1.3;
+    const blade = addMesh(boss, new THREE.ConeGeometry(.2, .85, 5), shellMat, [Math.sin(angle) * .72, 3.26 + Math.cos(angle) * .1, -.02]);
+    blade.rotation.z = -angle;
+  }
+  addMesh(boss, new THREE.OctahedronGeometry(.48, 0), coreMat, [0, 2.03, .94]);
   const core = addMesh(boss, new THREE.IcosahedronGeometry(.29, 1), coreMat, [0, 1.85, .68]);
   core.rotation.z = .2;
   addMesh(boss, new THREE.SphereGeometry(.13, 12, 10), eyeMat, [-.31, 2.98, .58]);
@@ -1072,6 +1098,23 @@ function createEnemyFormation() {
     const unit = cloneWarrior();
     recolorWarrior(unit.group, 'electric');
     unit.group.traverse((child) => { if (child.isMesh) { child.material.color.set(0x24152f); child.material.emissive.set(0xff2a52); child.material.emissiveIntensity = .72; child.material.metalness = .78; child.material.roughness = .24; } });
+    const armor = new THREE.MeshStandardMaterial({ color: 0x35152d, metalness: .82, roughness: .2, emissive: 0xff164f, emissiveIntensity: .95 });
+    const trim = new THREE.MeshBasicMaterial({ color: i % 2 ? 0xff4b86 : 0xffa343, toneMapped: false });
+    // Alternate raider helmets, shoulder spikes, and shields across the ranks.
+    if (i % 3 === 0) {
+      const helm = addMesh(unit.group, new THREE.ConeGeometry(.3, .62, 5), armor, [0, 1.98, 0]);
+      helm.rotation.x = -.18;
+      addMesh(unit.group, new THREE.BoxGeometry(.5, .08, .08), trim, [0, 1.67, .25], null, false, false);
+    } else if (i % 3 === 1) {
+      addMesh(unit.group, new THREE.ConeGeometry(.16, .58, 4), armor, [-.5, 1.49, 0]).rotation.z = .55;
+      addMesh(unit.group, new THREE.ConeGeometry(.16, .58, 4), armor, [.5, 1.49, 0]).rotation.z = -.55;
+      addMesh(unit.group, new THREE.CylinderGeometry(.32, .38, .12, 6), trim, [.48, 1.02, .3]).rotation.x = Math.PI / 2;
+    } else {
+      const crest = addMesh(unit.group, new THREE.TorusGeometry(.25, .075, 6, 12, Math.PI), trim, [0, 1.9, -.02]);
+      crest.rotation.z = Math.PI;
+      addMesh(unit.group, new THREE.BoxGeometry(.62, .22, .18), armor, [0, 1.42, .25]);
+    }
+    unit.group.traverse((child) => { if (child.isMesh && (child.material === armor || child.material === trim)) child.userData.preserveMaterial = true; });
     const anchor = new THREE.Group();
     anchor.userData.soldier = true;
     anchor.add(unit.group);
