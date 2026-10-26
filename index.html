@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#07101b" />
+    <meta name="theme-color" content="#05030f" />
     <meta name="description" content="Elemental Army Run — pimpin pasukanmu melintasi Riftway." />
     <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
     <title>Elemental Army Run — Riftway Protocol</title>
-    <link rel="stylesheet" href="./style.css?v=4ecd478" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css?v=cyber1" />
     <script type="importmap">
       {
         "imports": {
@@ -21,6 +24,7 @@
     <main id="game" aria-label="Elemental Army Run">
       <canvas id="scene" aria-label="Scene 3D Elemental Army Run"></canvas>
       <div class="vignette" aria-hidden="true"></div>
+      <div class="scanlines" aria-hidden="true"></div>
 
       <section class="topbar" aria-label="Status permainan">
         <div class="brand-lockup">
@@ -91,6 +95,6 @@
 
       <div class="loading-screen" id="loading-screen"><div class="loader-mark"><i></i><i></i><i></i></div><span>SUMMONING YOUR FORMATION</span><small>LOADING RIFTWAY // PLEASE WAIT</small></div>
     </main>
-    <script type="module" src="./main.js?v=4ecd478"></script>
+    <script type="module" src="./main.js?v=cyber1"></script>
   </body>
 </html>
