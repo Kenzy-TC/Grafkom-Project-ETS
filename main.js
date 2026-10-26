@@ -788,9 +788,18 @@ function elementMaterial(element, transparent = false) {
 function createFallbackWarrior() {
   const group = new THREE.Group();
   const baseMat = new THREE.MeshStandardMaterial({ color: 0xffa26b, metalness: .4, roughness: .38 });
+  const armorMat = new THREE.MeshStandardMaterial({ color: 0x291c3c, metalness: .72, roughness: .24, emissive: 0x552044, emissiveIntensity: .42 });
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0xffd67a, toneMapped: false });
   addMesh(group, new THREE.CapsuleGeometry(.28, .66, 3, 6), baseMat, [0, .97, 0]);
+  addMesh(group, new THREE.BoxGeometry(.49, .42, .34), armorMat, [0, 1.13, .22]);
+  addMesh(group, new THREE.BoxGeometry(.58, .14, .4), armorMat, [0, 1.42, 0]);
   addMesh(group, new THREE.SphereGeometry(.24, 8, 6), baseMat, [0, 1.65, 0]);
   addMesh(group, new THREE.ConeGeometry(.19, .38, 5), baseMat, [0, 1.96, -.02]);
+  addMesh(group, new THREE.BoxGeometry(.25, .065, .04), glowMat, [0, 1.68, .225]);
+  addMesh(group, new THREE.BoxGeometry(.12, .38, .1), glowMat, [0, 1.15, .405], null, false, false);
+  addMesh(group, new THREE.IcosahedronGeometry(.16, 1), glowMat, [0, 2.17, -.02], null, false, false);
+  addMesh(group, new THREE.SphereGeometry(.29, 8, 6), armorMat, [-.43, 1.31, 0]);
+  addMesh(group, new THREE.SphereGeometry(.29, 8, 6), armorMat, [.43, 1.31, 0]);
   const armL = addMesh(group, new THREE.BoxGeometry(.15, .6, .16), baseMat, [-.42, 1.02, 0]);
   const armR = addMesh(group, new THREE.BoxGeometry(.15, .6, .16), baseMat, [.42, 1.02, 0]);
   const legL = addMesh(group, new THREE.BoxGeometry(.18, .54, .2), baseMat, [-.17, .35, 0]);
@@ -963,7 +972,7 @@ function createEnemyFormation() {
   for (let i = 0; i < 9; i++) {
     const unit = cloneWarrior();
     recolorWarrior(unit.group, 'electric');
-    unit.group.traverse((child) => { if (child.isMesh) { child.material.color.set(0x2a1840); child.material.emissive.set(0xff2a52); child.material.emissiveIntensity = .5; } });
+    unit.group.traverse((child) => { if (child.isMesh) { child.material.color.set(0x24152f); child.material.emissive.set(0xff2a52); child.material.emissiveIntensity = .72; child.material.metalness = .78; child.material.roughness = .24; } });
     const anchor = new THREE.Group();
     anchor.userData.soldier = true;
     anchor.add(unit.group);
@@ -1095,10 +1104,11 @@ function updateFx(dt) {
     effect.age += dt;
     const progress = Math.min(1, effect.age / effect.lifetime);
     if (effect.isPortal) {
-      const opening = Math.min(1, progress / .72);
-      const fade = progress < .72 ? 1 : Math.max(0, (1 - progress) / .28);
+      const opening = Math.min(1, progress / .18);
+      const closing = progress < .78 ? 1 : Math.max(.035, 1 - (progress - .78) / .22);
+      const fade = progress < .78 ? 1 : Math.max(0, (1 - progress) / .22);
       const pulse = 1 + Math.sin(effect.age * 13) * .025;
-      effect.mesh.scale.setScalar(.035 + opening * 1.08 * pulse);
+      effect.mesh.scale.setScalar(.035 + opening * closing * 1.08 * pulse);
       effect.mesh.rotation.y += dt * 1.8;
       const glow = Math.min(1, progress * 7) * fade;
       effect.mesh.children.forEach((child) => {
