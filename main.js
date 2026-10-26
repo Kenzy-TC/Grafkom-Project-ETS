@@ -915,6 +915,42 @@ function recolorWarrior(model, element) {
   oldMaterials.forEach((material) => material.dispose());
 }
 
+function addCyberpunkArmor(model, variant, glowColor) {
+  const armor = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: .9, roughness: .22, emissive: 0x07111e, emissiveIntensity: .55 });
+  const plate = new THREE.MeshStandardMaterial({ color: 0x263447, metalness: .84, roughness: .26, emissive: glowColor, emissiveIntensity: .16 });
+  const neon = new THREE.MeshBasicMaterial({ color: glowColor, toneMapped: false });
+  const detail = (geometry, material, position, scale, rotation) => {
+    const mesh = addMesh(model, geometry, material, position, scale, material !== neon, false);
+    if (rotation) mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+    mesh.userData.preserveMaterial = true;
+    return mesh;
+  };
+
+  // Rebuild the read of the body with layered, angular plates and an illuminated visor.
+  detail(new THREE.IcosahedronGeometry(.36, 0), plate, [0, 1.17, .235], [.95, .94, .5]);
+  detail(new THREE.BoxGeometry(.46, .095, .045), neon, [0, 1.72, .24], [1, 1, 1]);
+  detail(new THREE.BoxGeometry(.3, .055, .05), armor, [0, 1.61, .255]);
+  detail(new THREE.BoxGeometry(.18, .055, .05), neon, [0, .78, .215]);
+  detail(new THREE.BoxGeometry(.34, .32, .2), armor, [0, 1.05, -.29]);
+  detail(new THREE.BoxGeometry(.38, .045, .12), neon, [0, 1.22, -.405]);
+  for (const side of [-1, 1]) {
+    detail(new THREE.DodecahedronGeometry(.25, 0), plate, [side * .48, 1.42, .015], [.95, .72, .8]);
+    detail(new THREE.BoxGeometry(.2, .22, .24), armor, [side * .44, .94, .08], [1, 1, 1], [0, 0, side * -.12]);
+    detail(new THREE.BoxGeometry(.22, .12, .25), plate, [side * .17, .35, .025]);
+    detail(new THREE.BoxGeometry(.055, .34, .045), neon, [side * .22, 1.15, .29], [1, 1, 1], [0, 0, side * .34]);
+  }
+  if (variant % 3 === 0) {
+    detail(new THREE.ConeGeometry(.13, .42, 4), plate, [-.24, 1.95, 0], [1, 1, 1], [0, 0, .35]);
+    detail(new THREE.ConeGeometry(.13, .42, 4), plate, [.24, 1.95, 0], [1, 1, 1], [0, 0, -.35]);
+  } else if (variant % 3 === 1) {
+    detail(new THREE.CylinderGeometry(.035, .055, .42, 6), neon, [.19, 2.03, -.05], null, [0, 0, -.12]);
+    detail(new THREE.SphereGeometry(.09, 8, 6), neon, [.19, 2.25, -.05]);
+  } else {
+    detail(new THREE.BoxGeometry(.12, .4, .13), plate, [0, 2.02, -.02], [1.2, 1, 1]);
+    detail(new THREE.BoxGeometry(.28, .045, .045), neon, [0, 1.91, .08]);
+  }
+}
+
 function cloneWarrior() {
   if (!game.modelTemplate) return createFallbackWarrior();
   const root = game.modelTemplate.clone(true);
@@ -935,6 +971,9 @@ function makeUnit() {
   const unit = cloneWarrior();
   const anchor = new THREE.Group();
   anchor.add(unit.group);
+  const unitIndex = game.visualUnits.length;
+  const armorGlow = [0x00f0ff, 0xff2bd6, 0xfcee0a, 0x8a3dff][unitIndex % 4];
+  addCyberpunkArmor(unit.group, unitIndex, armorGlow);
   // Small, readable silhouette changes keep the formation from looking cloned.
   const accentColors = [0x00f0ff, 0xff2bd6, 0xfcee0a, 0x8a3dff];
   const accent = new THREE.MeshStandardMaterial({ color: accentColors[game.visualUnits.length % accentColors.length], emissive: accentColors[game.visualUnits.length % accentColors.length], emissiveIntensity: 1.35, metalness: .55, roughness: .24 });
@@ -1100,6 +1139,7 @@ function createEnemyFormation() {
     const unit = cloneWarrior();
     recolorWarrior(unit.group, 'electric');
     unit.group.traverse((child) => { if (child.isMesh) { child.material.color.set(0x24152f); child.material.emissive.set(0xff2a52); child.material.emissiveIntensity = .72; child.material.metalness = .78; child.material.roughness = .24; } });
+    addCyberpunkArmor(unit.group, i + 1, i % 2 ? 0xff315c : 0xff8a36);
     const armor = new THREE.MeshStandardMaterial({ color: 0x35152d, metalness: .82, roughness: .2, emissive: 0xff164f, emissiveIntensity: .95 });
     const trim = new THREE.MeshBasicMaterial({ color: i % 2 ? 0xff4b86 : 0xffa343, toneMapped: false });
     // Alternate raider helmets, shoulder spikes, and shields across the ranks.
