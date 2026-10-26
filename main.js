@@ -118,6 +118,7 @@ const game = {
   feedbackTimer: 0,
   clockTime: 0,
   cameraShake: 0,
+  damageFlash: 0,
   previousZ: 2.4,
   defeatedWave: false,
   defeatedSecondWave: false,
@@ -145,6 +146,7 @@ const battleKicker = document.querySelector('#battle-kicker');
 const battleTitle = document.querySelector('#battle-title');
 const battleSubtitle = document.querySelector('#battle-subtitle');
 const enemyHealth = document.querySelector('#enemy-health');
+const impactFlash = document.querySelector('#impact-flash');
 
 function addMesh(parent, geometry, material, position, scale, cast = true, receive = true) {
   const mesh = new THREE.Mesh(geometry, material);
@@ -689,7 +691,7 @@ function createGate(config) {
   hitZone.rotation.x = -Math.PI / 2;
   hitZone.position.set(0, .03, 0);
   group.add(hitZone);
-  const record = { ...config, group, ring, ringMat, portal, portalMat, frameMat, pad, signMat, hitZoneMaterial, target, resolved: false, phase: Math.random() * 6 };
+  const record = { ...config, group, ring, ringMat, portal, portalMat, frameMat, pad, signMat, hitZoneMaterial, target, resolved: false, phase: Math.random() * 6, flashUntil: 0 };
   target.userData.gate = record;
   gateRecords.push(record);
   return record;
@@ -1294,7 +1296,35 @@ function applyGate(config) {
   }
   rebuildFormation();
   updateHud();
+  const enteredGate = gateRecords.find((gate) => gate.id === config.id);
+  if (enteredGate) enteredGate.flashUntil = game.clockTime + .42;
+  spawnCharacterSparks(new THREE.Color(gateLabels[game.element].color));
   spawnImpact(new THREE.Vector3(game.playerX, .7, config.z), new THREE.Color(config.color), 1.1);
+}
+
+function spawnCharacterSparks(color) {
+  const activeUnits = game.visualUnits.filter((unit) => unit.anchor.visible);
+  if (!activeUnits.length) return;
+  const sparksPerUnit = 5;
+  const count = activeUnits.length * sparksPerUnit;
+  const positions = new Float32Array(count * 3);
+  const velocity = [];
+  let sparkIndex = 0;
+  for (const unit of activeUnits) {
+    for (let spark = 0; spark < sparksPerUnit; spark++, sparkIndex++) {
+      const angle = (spark / sparksPerUnit) * Math.PI * 2 + Math.random() * .35;
+      const radius = .16 + Math.random() * .18;
+      positions[sparkIndex * 3] = unit.anchor.position.x + Math.cos(angle) * radius;
+      positions[sparkIndex * 3 + 1] = .65 + Math.random() * 1.05;
+      positions[sparkIndex * 3 + 2] = unit.anchor.position.z + Math.sin(angle) * radius;
+      velocity.push(new THREE.Vector3(Math.cos(angle) * (1.1 + Math.random() * 1.1), .45 + Math.random() * 1.3, Math.sin(angle) * (1.1 + Math.random() * 1.1)));
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const points = new THREE.Points(geometry, new THREE.PointsMaterial({ map: glowTexture, color, size: .27, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+  world.add(points);
+  activeFx.push({ mesh: points, positions, velocity, age: 0, lifetime: .62, isPoints: true });
 }
 
 function spawnImpact(origin, color, scale = 1) {
@@ -1672,6 +1702,8 @@ function handleWorldEvents(previousZ, currentZ) {
       }
       const loss = Math.min(3, Math.max(1, game.count - 1));
       game.count -= loss;
+      game.cameraShake = Math.max(game.cameraShake, .78);
+      game.damageFlash = Math.max(game.damageFlash, .92);
       rebuildFormation();
       updateHud();
       setFeedback(`SHOCK PYLON // −${loss} UNITS`, '#ff4d6d');
@@ -1745,10 +1777,12 @@ function updateWorldObjects(time) {
   for (const gate of gateRecords) {
     const pulse = .84 + .27 * Math.sin(time * 2.8 + gate.phase);
     const dimmed = gate.resolved;
+    const flash = Math.max(0, Math.min(1, (gate.flashUntil - time) / .42));
     gate.ring.rotation.z += .006;
-    gate.ringMat.emissiveIntensity = dimmed ? .12 : gate.id === game.selectedGate ? 3.6 : pulse * 2.2;
-    gate.portalMat.opacity = dimmed ? .025 : .09 + .07 * (Math.sin(time * 2 + gate.phase) * .5 + .5);
-    gate.frameMat.emissiveIntensity = dimmed ? .18 : 1.9;
+    gate.ringMat.emissiveIntensity = Math.max(dimmed ? .12 : gate.id === game.selectedGate ? 3.6 : pulse * 2.2, flash * 7);
+    gate.portalMat.opacity = Math.max(dimmed ? .025 : .09 + .07 * (Math.sin(time * 2 + gate.phase) * .5 + .5), flash * .88);
+    gate.portalMat.emissiveIntensity = .72 + flash * 4.5;
+    gate.frameMat.emissiveIntensity = Math.max(dimmed ? .18 : 1.9, flash * 4.8);
     gate.pad.material.emissiveIntensity = dimmed ? .12 : .8;
     gate.signMat.opacity = dimmed ? .42 : 1;
     gate.hitZoneMaterial.opacity = dimmed ? .025 : .2;
@@ -2015,6 +2049,8 @@ document.querySelector('#resume-button').addEventListener('click', resumeGame);
 function update(dt) {
   if (game.phase === 'paused') return;
   game.clockTime += dt;
+  game.damageFlash = Math.max(0, game.damageFlash - dt * 3.5);
+  impactFlash.style.opacity = String(game.damageFlash);
   if (['running', 'battle', 'boss'].includes(game.phase)) game.elapsed += dt;
   updateWorldObjects(game.clockTime);
   updateCity(game.clockTime, dt);

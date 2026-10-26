@@ -33,6 +33,7 @@ kbd { font-family: var(--body); }
 #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: 0; }
 .vignette { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(5, 2, 16, .66) 0%, transparent 22%, transparent 62%, rgba(5, 2, 16, .72) 100%), radial-gradient(ellipse at center, transparent 40%, rgba(4, 1, 14, .5) 100%); }
 .scanlines { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .55; mix-blend-mode: overlay; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .07) 0 1px, transparent 1px 3px); }
+.impact-flash { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, rgba(255, 35, 55, .08) 12%, rgba(255, 20, 45, .52) 100%); mix-blend-mode: screen; }
 
 /* Shared HUD panel: chamfered corners (top-right, bottom-left) + neon brackets (top-left, bottom-right). */
 .crew-readout, .mission-card, .hint-chip, .objective-chip, .steer-panel, .feedback, .battle-banner, .start-card, .end-card {
