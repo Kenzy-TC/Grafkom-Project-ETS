@@ -118,10 +118,11 @@ kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; 
 .feedback.show { opacity: 1; transform: translate(-50%, 0); }
 .battle-banner { --bk: var(--red); --fill: linear-gradient(90deg, rgba(26, 4, 22, .9), rgba(20, 5, 30, .72)); border-color: rgba(255, 42, 82, .4); position: absolute; z-index: 3; top: 22%; left: 50%; width: min(330px, 80vw); padding: 12px 20px 14px; text-align: center; opacity: 0; transform: translate(-50%, -8px); transition: opacity .3s, transform .3s; pointer-events: none; }
 .battle-banner.visible { opacity: 1; transform: translate(-50%, 0); }
-.battle-kicker { color: var(--red); font: 700 10px var(--body); letter-spacing: .22em; text-shadow: 0 0 10px var(--red); }
-.battle-banner > strong { display: block; margin-top: 3px; font: 900 18px var(--display); letter-spacing: .1em; text-shadow: 0 0 14px rgba(255, 42, 82, .6); }
+.battle-banner.phase-two { --bk: #53e8ff; border-color: rgba(83, 232, 255, .5); }
+.battle-kicker { color: var(--bk); font: 700 10px var(--body); letter-spacing: .22em; text-shadow: 0 0 10px var(--bk); }
+.battle-banner > strong { display: block; margin-top: 3px; font: 900 18px var(--display); letter-spacing: .1em; text-shadow: 0 0 14px var(--bk); }
 .health-track { height: 4px; margin: 8px 0 6px; background: rgba(255, 255, 255, .14); }
-.health-track i { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, var(--red), var(--pink), var(--yellow)); box-shadow: 0 0 10px rgba(255, 43, 214, .7); transition: width .5s; }
+.health-track i { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, var(--bk), var(--pink), var(--yellow)); box-shadow: 0 0 10px var(--bk); transition: width .5s; }
 .battle-banner > span { color: var(--muted); font: 600 9px var(--body); letter-spacing: .18em; }
 .crosshair { display: none; }
 .crosshair span, .crosshair i { position: absolute; top: 50%; left: 50%; display: block; background: rgba(0, 240, 255, .75); transform: translate(-50%, -50%); }

@@ -13,6 +13,7 @@ const startButton = document.querySelector('#start-button');
 const restartButton = document.querySelector('#restart-button');
 const pauseButton = document.querySelector('#pause-button');
 const pauseScreen = document.querySelector('#pause-screen');
+const ELEMENT_COUNTER = { fire: 'water', water: 'electric', electric: 'fire' };
 const gateLabels = {
   fire: { color: 0xff5a36, hex: '#ff5a36', label: 'FIRE', glyph: '✦', name: 'FIREKIN' },
   water: { color: 0x2e9bff, hex: '#2e9bff', label: 'WATER', glyph: '≈', name: 'TIDEBORN' },
@@ -688,10 +689,102 @@ function createGate(config) {
   hitZone.rotation.x = -Math.PI / 2;
   hitZone.position.set(0, .03, 0);
   group.add(hitZone);
-  const record = { ...config, group, ring, ringMat, portal, portalMat, frameMat, pad, signMat, hitZoneMaterial, resolved: false, phase: Math.random() * 6 };
+  const record = { ...config, group, ring, ringMat, portal, portalMat, frameMat, pad, signMat, hitZoneMaterial, target, resolved: false, phase: Math.random() * 6 };
   target.userData.gate = record;
   gateRecords.push(record);
   return record;
+}
+
+const gatePairs = [
+  ['fireRecruit', 'multiply'],
+  ['convertWater', 'riftTax'],
+  ['electricRecruit', 'bloodPact'],
+  ['multiply', 'unstableClone'],
+  ['convertElectric', 'waterBargain'],
+  ['riftTax', 'fireRecruit'],
+  ['bloodPact', 'convertWater'],
+  ['electricRecruit', 'unstableClone'],
+  ['multiply', 'riftTax'],
+];
+const gateColors = {
+  multiply: 0xff39d7,
+  riftTax: 0xff315c,
+  bloodPact: 0xff8243,
+  unstableClone: 0xb754ff,
+  waterBargain: 0x32c7ff,
+};
+const randomInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+const shuffled = (items) => {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = randomInt(0, i);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+};
+
+function makeGateOffer(type) {
+  const units = randomInt(4, 7);
+  if (type === 'fireRecruit') return { type, amount: units, powerGain: 1, title: `+${units}`, subtitle: 'FIRE RECRUITS // POWER +1', color: gateLabels.fire.color };
+  if (type === 'electricRecruit') {
+    const powerGain = randomInt(1, 3);
+    return { type, amount: units, powerGain, title: `+${units}`, subtitle: `ELECTRIC // POWER +${powerGain}`, color: gateLabels.electric.color };
+  }
+  if (type === 'convertWater') {
+    const wards = randomInt(1, 3);
+    return { type, wards, powerGain: 1, title: 'WATER', subtitle: `CONVERT // WARD +${wards} // POWER +1`, color: gateLabels.water.color };
+  }
+  if (type === 'convertElectric') {
+    const powerGain = randomInt(2, 4);
+    return { type, powerGain, title: 'STORM', subtitle: `CONVERT // POWER +${powerGain}`, color: gateLabels.electric.color };
+  }
+  if (type === 'multiply') return { type, multiplier: 2, title: '×2', subtitle: 'CLONE THE ARMY', color: gateColors.multiply };
+  if (type === 'riftTax') {
+    const loss = randomInt(3, 6);
+    return { type, loss, title: `-${loss}`, subtitle: 'RIFT TAX // UNITS LOST', color: gateColors.riftTax };
+  }
+  if (type === 'bloodPact') {
+    const loss = randomInt(2, 4);
+    const powerGain = randomInt(4, 7);
+    return { type, loss, powerGain, title: `-${loss} / +${powerGain}`, subtitle: 'BLOOD PACT // CONVERT FIRE', color: gateColors.bloodPact };
+  }
+  if (type === 'unstableClone') {
+    const recoil = randomInt(28, 42);
+    return { type, multiplier: 3, recoil, title: '×3!', subtitle: `UNSTABLE // RECOIL -${recoil}%`, color: gateColors.unstableClone };
+  }
+  const loss = randomInt(2, 4);
+  const wards = randomInt(2, 3);
+  const powerGain = randomInt(2, 4);
+  return { type: 'waterBargain', loss, wards, powerGain, title: `-${loss}`, subtitle: `WATER // WARD +${wards} // POWER +${powerGain}`, color: gateColors.waterBargain };
+}
+
+function rerollGateOffers(updateScene = true) {
+  const pairDeck = shuffled(gatePairs);
+  for (let routeIndex = 0; routeIndex < pairDeck.length; routeIndex++) {
+    const routeId = `gate-${routeIndex + 1}`;
+    const sides = shuffled([-1, 1]);
+    const offers = shuffled(pairDeck[routeIndex]).map(makeGateOffer);
+    sides.forEach((side, sideIndex) => {
+      const id = `g${routeIndex + 1}${side < 0 ? 'l' : 'r'}`;
+      const config = gateConfig.find((gate) => gate.route === routeId && gate.side === side);
+      if (!config) return;
+      Object.assign(config, offers[sideIndex], { id, route: routeId, z: config.z, side });
+      if (!updateScene) return;
+      const record = gateRecords.find((gate) => gate.id === config.id);
+      if (!record) return;
+      Object.assign(record, config, { resolved: false, phase: Math.random() * 6 });
+      record.frameMat.emissive.setHex(record.color);
+      record.ringMat.color.setHex(record.color).lerp(new THREE.Color(0xffffff), .26);
+      record.ringMat.emissive.setHex(record.color);
+      record.portalMat.emissive.setHex(record.color);
+      record.pad.material.emissive.setHex(record.color);
+      record.hitZoneMaterial.color.setHex(record.color).multiplyScalar(1.4);
+      record.signMat.map.dispose();
+      record.signMat.map = makeGateTexture(record.title, record.subtitle, record.color);
+      record.signMat.needsUpdate = true;
+      record.target.userData.gate = record;
+    });
+  }
 }
 
 const gateConfig = [
@@ -724,6 +817,7 @@ extendedGateRoutes.forEach((route, index) => {
     gateConfig.push({ id: `g${index + 4}${side < 0 ? 'l' : 'r'}`, z: route.z, side, type, ...view, route: `gate-${index + 4}` });
   }
 });
+rerollGateOffers(false);
 
 function createObstacle(config) {
   const group = new THREE.Group();
@@ -959,6 +1053,11 @@ function createBoss() {
   halo.rotation.x = Math.PI / 2;
   boss.userData.core = core;
   boss.userData.halo = halo;
+  boss.userData.baseCoreColor = core.material.color.clone();
+  boss.userData.baseCoreEmissive = core.material.emissive.clone();
+  boss.userData.baseCoreIntensity = core.material.emissiveIntensity;
+  boss.userData.baseHaloEmissive = halo.material.emissive.clone();
+  boss.userData.baseHaloIntensity = halo.material.emissiveIntensity;
   boss.visible = false;
   world.add(boss);
   game.enemyBoss = boss;
@@ -983,7 +1082,19 @@ function createEnemyFormation() {
   }
 }
 
+function setEnemyFormationElement(element) {
+  for (const unit of game.enemyUnits) {
+    recolorWarrior(unit.group, element);
+    unit.group.traverse((child) => {
+      if (!child.isMesh) return;
+      child.material.color.multiplyScalar(.43);
+      child.material.emissiveIntensity = element === 'electric' ? 1.05 : .82;
+    });
+  }
+}
+
 function setElement(nextElement) {
+  const previousElement = game.element;
   game.element = nextElement;
   const palette = gateLabels[nextElement];
   for (const unit of game.visualUnits) recolorWarrior(unit.group, nextElement);
@@ -996,6 +1107,7 @@ function setElement(nextElement) {
   elementEmblem.style.borderColor = `${palette.hex}88`;
   elementEmblem.style.background = `radial-gradient(circle, ${palette.hex}33, transparent 72%)`;
   elementGlyph.textContent = palette.glyph;
+  if (previousElement !== nextElement && ['running', 'battle', 'boss'].includes(game.phase)) spawnElementShift(nextElement);
 }
 
 function updateHud() {
@@ -1038,7 +1150,8 @@ function selectGate(config) {
   if (game.phase !== 'running' || config.resolved || game.playerZ < config.z) return;
   game.selectedGate = config.id;
   game.targetX = config.side * 2.45;
-  setFeedback(`ROUTE LOCKED // ${config.title} ${config.subtitle}`, gateLabels[config.type.includes('Water') ? 'water' : config.type.includes('Electric') ? 'electric' : 'fire'].hex);
+  const color = `#${config.color.toString(16).padStart(6, '0')}`;
+  setFeedback(`ROUTE LOCKED // ${config.title} ${config.subtitle}`, color);
 }
 
 function applyGate(config) {
@@ -1046,28 +1159,50 @@ function applyGate(config) {
   for (const sibling of gateRecords) if (sibling.route === config.route) sibling.resolved = true;
   game.routeStep = Math.min(9, game.routeStep + 1);
   game.selectedGate = null;
+  const previousCount = game.count;
   if (config.type === 'fireRecruit') {
-    game.count = Math.min(99, game.count + 5);
-    game.power += 1;
+    game.count = Math.min(99, game.count + config.amount);
+    game.power += config.powerGain;
     setElement('fire');
-    setFeedback('+5 FIRE RECRUITS // ELEMENTAL SHIFT', gateLabels.fire.hex);
+    setFeedback(`+${game.count - previousCount} FIRE // POWER +${config.powerGain}`, gateLabels.fire.hex);
   } else if (config.type === 'multiply') {
-    game.count = Math.min(99, game.count * 2);
-    setFeedback('FORMATION DOUBLED // ×2', '#ff5be0');
+    game.count = Math.min(99, game.count * config.multiplier);
+    setFeedback(`FORMATION MULTIPLIED // \u00D7${config.multiplier}`, '#ff5be0');
   } else if (config.type === 'convertWater') {
-    game.power += 2;
-    game.waterShields = Math.min(4, game.waterShields + 2);
+    game.power += config.powerGain;
+    game.waterShields = Math.min(12, game.waterShields + config.wards);
     setElement('water');
-    setFeedback('WATER WARD +2 // BLOCK THE NEXT SHOCK PYLONS', gateLabels.water.hex);
+    setFeedback(`WATER CONVERSION // WARD +${config.wards} // POWER +${config.powerGain}`, gateLabels.water.hex);
   } else if (config.type === 'electricRecruit') {
-    game.count = Math.min(99, game.count + 5);
-    game.power += 2;
+    game.count = Math.min(99, game.count + config.amount);
+    game.power += config.powerGain;
     setElement('electric');
-    setFeedback('+5 ELECTRIC RECRUITS // STORM POWER +2', gateLabels.electric.hex);
+    setFeedback(`+${game.count - previousCount} ELECTRIC // POWER +${config.powerGain}`, gateLabels.electric.hex);
   } else if (config.type === 'convertElectric') {
-    game.power += 3;
+    game.power += config.powerGain;
     setElement('electric');
-    setFeedback('ELECTRIC ARC ONLINE // SHOCK PYLONS DISABLED', gateLabels.electric.hex);
+    setFeedback(`ELECTRIC CONVERSION // POWER +${config.powerGain} // PYLONS DISABLED`, gateLabels.electric.hex);
+  } else if (config.type === 'riftTax') {
+    const loss = Math.min(config.loss, Math.max(0, game.count - 1));
+    game.count -= loss;
+    setFeedback(`RIFT TAX // -${loss} UNITS`, '#ff5574');
+  } else if (config.type === 'bloodPact') {
+    const loss = Math.min(config.loss, Math.max(0, game.count - 1));
+    game.count -= loss;
+    game.power += config.powerGain;
+    setElement('fire');
+    setFeedback(`BLOOD PACT // -${loss} UNITS // POWER +${config.powerGain}`, '#ff8243');
+  } else if (config.type === 'unstableClone') {
+    const cloned = Math.min(99, game.count * config.multiplier);
+    game.count = Math.max(1, Math.floor(cloned * (1 - config.recoil / 100)));
+    setFeedback(`UNSTABLE CLONE // \u00D7${config.multiplier}, THEN -${config.recoil}%`, '#d58aff');
+  } else if (config.type === 'waterBargain') {
+    const loss = Math.min(config.loss, Math.max(0, game.count - 1));
+    game.count -= loss;
+    game.power += config.powerGain;
+    game.waterShields = Math.min(12, game.waterShields + config.wards);
+    setElement('water');
+    setFeedback(`WATER BARGAIN // -${loss} // WARD +${config.wards} // POWER +${config.powerGain}`, gateLabels.water.hex);
   }
   rebuildFormation();
   updateHud();
@@ -1098,6 +1233,37 @@ function spawnImpact(origin, color, scale = 1) {
   activeFx.push({ mesh: pts, positions, velocity, age: 0, lifetime: .65, isPoints: true });
 }
 
+function spawnElementShift(element) {
+  const color = new THREE.Color(gateLabels[element].color);
+  const group = new THREE.Group();
+  group.position.set(game.playerX, .92, game.playerZ + .25);
+  const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .95, depthWrite: false, blending: THREE.AdditiveBlending });
+  const horizontal = new THREE.Mesh(new THREE.TorusGeometry(.85, .055, 8, 48), material);
+  horizontal.rotation.x = Math.PI / 2;
+  const vertical = new THREE.Mesh(new THREE.TorusGeometry(.65, .04, 8, 40), material.clone());
+  vertical.rotation.y = Math.PI / 2;
+  group.add(horizontal, vertical);
+  world.add(group);
+  activeFx.push({ mesh: group, age: 0, lifetime: .9, isShift: true });
+  spawnImpact(new THREE.Vector3(game.playerX, .72, game.playerZ), color, 1.8);
+}
+
+function spawnBattleStrike(source, target, color, isEnemyAttack = false) {
+  const mid = source.clone().lerp(target, .5);
+  mid.x += (Math.random() - .5) * .7;
+  mid.y += .45 + Math.random() * .55;
+  const curve = new THREE.CatmullRomCurve3([source.clone(), mid, target.clone()]);
+  const geometry = new THREE.TubeGeometry(curve, 8, isEnemyAttack ? .065 : .045, 5, false);
+  const material = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(color), transparent: true, opacity: .96,
+    depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  const beam = new THREE.Mesh(geometry, material);
+  world.add(beam);
+  activeFx.push({ mesh: beam, age: 0, lifetime: isEnemyAttack ? .34 : .27, isBeam: true });
+  spawnImpact(target, new THREE.Color(color), isEnemyAttack ? .55 : .72);
+}
+
 function updateFx(dt) {
   for (let i = activeFx.length - 1; i >= 0; i--) {
     const effect = activeFx[i];
@@ -1118,6 +1284,14 @@ function updateFx(dt) {
       });
       if (effect.portalLight) effect.portalLight.intensity = effect.portalLight.userData.baseIntensity * glow;
       if (effect.portalFill) effect.portalFill.intensity = effect.portalFill.userData.baseIntensity * glow;
+    } else if (effect.isShift) {
+      const pulse = Math.sin(progress * Math.PI);
+      effect.mesh.scale.setScalar(.3 + pulse * 1.05);
+      effect.mesh.rotation.y += dt * 2.5;
+      effect.mesh.children.forEach((child) => { child.material.opacity = (1 - progress) * .95; });
+    } else if (effect.isBeam) {
+      effect.mesh.material.opacity = (1 - progress) * .96;
+      effect.mesh.scale.set(1, 1 + Math.sin(progress * Math.PI) * .2, 1);
     } else if (effect.isPoints) {
       const attr = effect.mesh.geometry.getAttribute('position');
       for (let j = 0; j < effect.velocity.length; j++) {
@@ -1278,29 +1452,46 @@ function spawnPortalSparks(z, radius, color) {
 function startEncounter(kind) {
   const isBoss = kind === 'boss';
   const isSecondWave = kind === 'secondWave';
-  const baseDuration = isBoss ? 5.2 : isSecondWave ? 4.1 : 3.5;
-  game.phase = kind === 'boss' ? 'boss' : 'battle';
-  game.encounter = { kind, elapsed: 0, pulseTimer: 0, duration: baseDuration * (game.element === 'electric' ? .82 : 1), resolved: false, spawnProgress: 0 };
+  const enemyElement = isBoss ? 'water' : isSecondWave ? 'fire' : 'electric';
+  const weakness = Object.keys(ELEMENT_COUNTER).find((element) => ELEMENT_COUNTER[element] === enemyElement);
+  const baseDuration = isBoss ? 6.4 : isSecondWave ? 4.8 : 4.2;
+  game.phase = isBoss ? 'boss' : 'battle';
+  game.encounter = {
+    kind, elapsed: 0, pulseTimer: 0,
+    duration: baseDuration * (game.element === 'electric' ? .9 : 1),
+    resolved: false, spawnProgress: 0, enemyElement, weakness,
+    phase: 1, attackTurn: 0,
+  };
   game.targetX = 0;
   game.enemyRoot.visible = !isBoss;
+  if (!isBoss) setEnemyFormationElement(enemyElement);
   const spawnZ = isBoss ? FINAL_BOSS_Z - 4.5 : isSecondWave ? SECOND_WAVE_Z + 3.2 : -63.8;
   game.enemyRoot.position.set(0, -2.7, isBoss ? FINAL_BOSS_Z + 5.5 : spawnZ);
   game.enemyRoot.scale.setScalar(.42);
   if (isBoss && game.enemyBoss) {
+    const core = game.enemyBoss.userData.core;
+    const halo = game.enemyBoss.userData.halo;
+    core.material.color.copy(game.enemyBoss.userData.baseCoreColor);
+    core.material.emissive.copy(game.enemyBoss.userData.baseCoreEmissive);
+    core.material.emissiveIntensity = game.enemyBoss.userData.baseCoreIntensity;
+    halo.material.emissive.copy(game.enemyBoss.userData.baseHaloEmissive);
+    halo.material.emissiveIntensity = game.enemyBoss.userData.baseHaloIntensity;
     game.enemyBoss.visible = true;
     game.enemyBoss.position.set(0, -3.2, spawnZ);
     game.enemyBoss.scale.setScalar(.34);
     game.cameraShake = 1.05;
   }
   const portalCenterZ = isBoss ? spawnZ : spawnZ - 3.82;
-  openEnemyPortal(portalCenterZ, isBoss ? 5.6 : 5.15, isBoss ? NEON.pink : NEON.orange, isBoss);
+  const enemyColor = gateLabels[enemyElement].color;
+  openEnemyPortal(portalCenterZ, isBoss ? 5.6 : 5.15, enemyColor, isBoss);
   battleBanner.classList.add('visible');
-  battleKicker.textContent = isBoss ? 'FINAL ENCOUNTER' : isSecondWave ? 'SECOND CONTACT // RIFT SENTRIES' : 'CONTACT // SHADOW GUARD';
+  battleBanner.classList.remove('phase-two');
+  battleKicker.textContent = `WEAK TO ${gateLabels[weakness].label}`;
   battleTitle.textContent = isBoss ? 'RIFT WARDEN' : isSecondWave ? 'RIFT SENTRIES' : 'SHADOW GUARD';
-  battleSubtitle.textContent = isBoss ? 'RIFT CORE INTEGRITY' : isSecondWave ? 'SENTINEL FORMATION' : 'ENEMY FORMATION';
+  battleSubtitle.textContent = `${gateLabels[enemyElement].label} ENEMY // ${gateLabels[weakness].label} COUNTERS`;
   enemyHealth.style.width = '100%';
   document.querySelector('#mission-title').textContent = isBoss ? 'BREAK THE RIFT WARDEN' : isSecondWave ? 'DEFEAT THE RIFT SENTRIES' : 'DEFEAT THE SHADOW GUARD';
-  setFeedback(isBoss ? 'THE RIFT WARDEN // BREAK ITS CORE' : isSecondWave ? 'RIFT SENTRIES // HOLD THE LINE' : 'SHADOW GUARD // HOLD YOUR FORMATION', '#ff4d6d');
+  setFeedback(`${battleTitle.textContent} // WEAK TO ${gateLabels[weakness].label}`, '#ff4d6d');
 }
 
 function finishGame(won, copy) {
@@ -1328,9 +1519,14 @@ function resolveEncounter() {
   const isBoss = game.encounter.kind === 'boss';
   const isSecondWave = game.encounter.kind === 'secondWave';
   const waterWard = game.element === 'water' && game.waterShields > 0;
+  const enemyElement = game.encounter.enemyElement;
+  const hasCounter = ELEMENT_COUNTER[game.element] === enemyElement;
+  const isCountered = ELEMENT_COUNTER[enemyElement] === game.element;
+  const matchupBonus = hasCounter ? 1.4 : isCountered ? .72 : 1;
+  const exposedCoreBonus = isBoss && game.encounter.phase === 2 && hasCounter ? 1.2 : 1;
   const elementalBonus = game.element === 'fire' ? 1.25 : game.element === 'electric' ? 1.12 : 1;
-  const strength = game.count * elementalBonus + game.power + (waterWard ? 3 : 0);
-  const threat = isBoss ? 27 : isSecondWave ? 20 : 15;
+  const strength = game.count * elementalBonus * matchupBonus * exposedCoreBonus + game.power + (waterWard ? 3 : 0);
+  const threat = isBoss ? 28 : isSecondWave ? 22 : 17;
   if (strength < threat) {
     finishGame(false, isBoss ? 'The Warden overwhelmed the formation before the core could break.' : isSecondWave ? 'The Rift Sentries scattered the formation before the Warden.' : 'The Shadow Guard scattered the formation. The Rift is still ahead.');
     return;
@@ -1338,7 +1534,7 @@ function resolveEncounter() {
   if (isBoss) {
     game.defeatedBoss = true;
     if (waterWard) game.waterShields--;
-    game.count = Math.max(1, game.count - Math.max(1, Math.round(5 - game.power * .2 - (waterWard ? 2 : 0) - (game.element === 'electric' ? 1 : 0))));
+    game.count = Math.max(1, game.count - Math.max(1, Math.round(9 - game.power * .2 - (waterWard ? 2 : 0) - (game.element === 'electric' ? 1 : 0) - (hasCounter ? 3 : isCountered ? -2 : 0))));
     updateHud();
     spawnImpact(new THREE.Vector3(0, 2.1, FINAL_BOSS_Z - 4.5), new THREE.Color(gateLabels[game.element].color), 3.2);
     finishGame(true, `The Warden fell to your ${gateLabels[game.element].label.toLowerCase()} formation. ${game.count} units made it out.`);
@@ -1517,23 +1713,67 @@ function updateEncounter(dt) {
   const emerge = encounter.spawnProgress * encounter.spawnProgress * (3 - 2 * encounter.spawnProgress);
   const illuminationFade = Math.max(0, 1 - Math.max(0, encounter.elapsed - 1.05) / 2.15);
   const portalIllumination = Math.min(1, encounter.spawnProgress / .3) * illuminationFade;
-  if (encounter.kind === 'boss' && game.enemyBoss) {
-    applyPortalIllumination(game.enemyBoss, portalIllumination);
+  const isBoss = encounter.kind === 'boss';
+
+  if (isBoss && game.enemyBoss) {
+    if (encounter.phase === 1) applyPortalIllumination(game.enemyBoss, portalIllumination);
     game.enemyBoss.position.y = -3.2 * (1 - emerge) + Math.sin(game.clockTime * 2.2) * .12 * emerge;
     game.enemyBoss.scale.setScalar(.34 + .66 * emerge);
   } else {
-    game.enemyUnits.forEach((unit) => applyPortalIllumination(unit.anchor, portalIllumination));
+    game.enemyUnits.forEach((unit, index) => {
+      applyPortalIllumination(unit.anchor, portalIllumination);
+      const swing = Math.sin(game.clockTime * 7 + unit.phase);
+      if (unit.armL) unit.armL.rotation.z = swing * .52;
+      if (unit.armR) unit.armR.rotation.z = -swing * .52;
+      if (unit.legL) unit.legL.rotation.x = -swing * .28;
+      if (unit.legR) unit.legR.rotation.x = swing * .28;
+      unit.anchor.position.y = Math.sin(game.clockTime * 5 + index) * .08;
+    });
     game.enemyRoot.position.y = -2.7 * (1 - emerge);
     game.enemyRoot.scale.setScalar(.42 + .58 * emerge);
   }
-  if (encounter.pulseTimer >= .64) {
+
+  const progress = Math.min(1, encounter.elapsed / encounter.duration);
+  if (isBoss && encounter.phase === 1 && progress >= .46) {
+    encounter.phase = 2;
+    const core = game.enemyBoss.userData.core;
+    const halo = game.enemyBoss.userData.halo;
+    core.material.color.set(0x50d7ff);
+    core.material.emissive.set(0x24cfff);
+    core.material.emissiveIntensity = 4.8;
+    halo.material.emissive.set(0x24cfff);
+    halo.material.emissiveIntensity = 4.2;
+    game.cameraShake = Math.max(game.cameraShake, .7);
+    battleBanner.classList.add('phase-two');
+    battleKicker.textContent = 'PHASE 02 // CORE EXPOSED';
+    battleSubtitle.textContent = 'WATER CORE // FIRE ADVANTAGE AMPLIFIED';
+    setFeedback('WARDEN SHIELD BROKEN // CORE EXPOSED', '#53e8ff');
+    spawnImpact(new THREE.Vector3(0, 2.05, FINAL_BOSS_Z - 4.5), new THREE.Color(0x34d8ff), 3.4);
+  }
+
+  const firstPhase = isBoss && progress < .46;
+  const health = isBoss
+    ? firstPhase ? 1 - (progress / .46) * .42 : .58 * (1 - ((progress - .46) / .54))
+    : 1 - progress;
+  enemyHealth.style.width = `${Math.max(0, health) * 100}%`;
+
+  const attackInterval = isBoss && encounter.phase === 2 ? .42 : .68;
+  if (encounter.pulseTimer >= attackInterval) {
     encounter.pulseTimer = 0;
-    const encounterZ = encounter.kind === 'boss' ? FINAL_BOSS_Z - 4.5 : encounter.kind === 'secondWave' ? SECOND_WAVE_Z + 2.5 : -64.5;
-    const origin = new THREE.Vector3(encounter.kind === 'boss' ? 0 : (Math.random() - .5) * 3, encounter.kind === 'boss' ? 2.4 : 1, encounterZ);
-    spawnImpact(origin, new THREE.Color(gateLabels[game.element].color), encounter.kind === 'boss' ? 1.15 : .8);
-    const remaining = Math.max(0, 1 - encounter.elapsed / encounter.duration);
-    enemyHealth.style.width = `${remaining * 100}%`;
-    game.enemyUnits.forEach((unit, index) => { unit.anchor.position.y = Math.sin(game.clockTime * 5 + index) * .09; });
+    const playerPosition = new THREE.Vector3(game.playerX, 1.05, game.playerZ + .15);
+    const enemyPosition = isBoss
+      ? new THREE.Vector3(game.enemyBoss.position.x, 2.15, game.enemyBoss.position.z + .75)
+      : new THREE.Vector3((Math.random() - .5) * 2.4, 1.25, encounter.kind === 'secondWave' ? SECOND_WAVE_Z + 1.5 : -64.8);
+    const playerStrikes = encounter.attackTurn % 2 === 0;
+    if (playerStrikes) {
+      const hitColor = gateLabels[game.element].color;
+      spawnBattleStrike(playerPosition, enemyPosition, hitColor);
+      if (isBoss) game.enemyBoss.userData.core.material.emissiveIntensity = encounter.phase === 2 ? 6.2 : 3.3;
+    } else {
+      spawnBattleStrike(enemyPosition, playerPosition, 0xff315c, true);
+      game.cameraShake = Math.max(game.cameraShake, isBoss && encounter.phase === 2 ? .34 : .18);
+    }
+    encounter.attackTurn++;
   }
   if (encounter.elapsed >= encounter.duration) resolveEncounter();
 }
@@ -1600,7 +1840,7 @@ function startRun() {
   startScreen.classList.add('is-hidden');
   document.querySelector('#hint-text').textContent = 'DODGE THE SHOCK PYLONS';
   document.querySelector('#mission-title').textContent = 'REACH THE RIFT';
-  document.querySelector('#mission-copy').textContent = 'Fire strikes harder. Water wards block pylons. Electric arcs disable them.';
+  document.querySelector('#mission-copy').textContent = 'Random gates can trade units for power. Counter enemy elements to reduce losses.';
   setFeedback('FORMATION DEPLOYED // CHOOSE A GATE', '#53f6ff');
 }
 
@@ -1626,11 +1866,35 @@ function resetRun() {
   game.elapsed = 0;
   game.encounter = null;
   for (const gate of gateRecords) gate.resolved = false;
+  rerollGateOffers();
   for (const obstacle of obstacles) obstacle.resolved = false;
-  for (const effect of activeFx) { world.remove(effect.mesh); effect.mesh.geometry.dispose(); effect.mesh.material.dispose(); }
+  for (const effect of activeFx) {
+    world.remove(effect.mesh);
+    if (effect.mesh.isGroup) {
+      effect.mesh.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          for (const material of Array.isArray(child.material) ? child.material : [child.material]) material.dispose();
+        }
+      });
+    } else {
+      effect.mesh.geometry?.dispose();
+      for (const material of Array.isArray(effect.mesh.material) ? effect.mesh.material : [effect.mesh.material]) material?.dispose();
+    }
+  }
   activeFx.length = 0;
-  if (game.enemyBoss) game.enemyBoss.visible = false;
+  if (game.enemyBoss) {
+    game.enemyBoss.visible = false;
+    const core = game.enemyBoss.userData.core;
+    const halo = game.enemyBoss.userData.halo;
+    core.material.color.copy(game.enemyBoss.userData.baseCoreColor);
+    core.material.emissive.copy(game.enemyBoss.userData.baseCoreEmissive);
+    core.material.emissiveIntensity = game.enemyBoss.userData.baseCoreIntensity;
+    halo.material.emissive.copy(game.enemyBoss.userData.baseHaloEmissive);
+    halo.material.emissiveIntensity = game.enemyBoss.userData.baseHaloIntensity;
+  }
   game.enemyRoot.visible = false;
+  battleBanner.classList.remove('phase-two');
   battleBanner.classList.remove('visible');
   endScreen.classList.add('is-hidden');
   startScreen.classList.remove('is-hidden');
