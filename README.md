@@ -3,16 +3,16 @@
 > **Topik UTS:** Elemental Army Run  
 > **Bentuk:** mini game 3D runner untuk browser
 
-Pimpin pasukan Fire, Water, atau Electric menyeberangi Ashen Causeway. Pilihan gate mengubah jumlah dan elemen pasukan; shock pylon menguji jalur yang dipilih; lalu pasukan menghadapi Shadow Guard dan Rift Warden.
+## Deskripsi
 
-## Anggota dan kontribusi
+*Elemental Army Run: Riftway Protocol* adalah mini game 3D runner berbasis browser. Pemain memimpin pasukan Fire, Water, atau Electric menyeberangi Ashen Causeway. Pilihan gate mengubah jumlah dan elemen pasukan; shock pylon menguji jalur yang dipilih; lalu pasukan menghadapi Shadow Guard dan Rift Warden.
 
-| Anggota | NRP | Kontribusi |
-| --- | --- | --- |
-| Mario Napitupulu | 5025241085 | Scene dan environment, gate, crowd formation, model GLTF, HUD |
-| Nathanael Oliver Amadhika Yuswana | 5025241109 | Gameplay, battle dan state game, elemental VFX, HUD, Scene dan environtment |
+## Anggota
 
-Pembagian kontribusi dapat disesuaikan dengan pembagian kerja akhir kelompok.
+| Anggota | NRP |
+| --- | --- |
+| Mario Napitupulu | 5025241085 |
+| Nathanael Oliver Amadhika Yuswana | 5025241109 |
 
 ## Gameplay dan objective
 
@@ -37,14 +37,14 @@ Elemen punya keunggulan dan kelemahan saat battle: **Fire mengalahkan Water**, *
 
 Battle menampilkan musuh yang muncul dari portal, serangan energi bolak-balik antara pasukan dan musuh, impact particle, guncangan kamera saat musuh menyerang, serta health bar yang bergerak mengikuti pertarungan. Rift Warden memiliki dua fase: perisainya pecah di tengah battle dan core Water terbuka; serangannya lalu lebih cepat dan Fire mendapat bonus counter tambahan. **Menang** jika kekuatan pasukan mengalahkan musuh final; **kalah** jika pasukan kurang kuat dalam salah satu battle. Gunakan tombol restart untuk mengacak ulang isi gate dan bermain lagi.
 
-## Kontrol
+## Control
 
 - Setelah mulai, pasukan berlari otomatis. Klik tombol **LEFT** / **RIGHT** pada HUD agar bisa dimainkan tanpa keyboard; tombol ini juga bisa disentuh di layar ponsel.
 - `A` / `D` atau tombol panah kiri/kanan: pindah jalur.
 - Klik panel gate yang ingin dipilih untuk mengunci rute.
 - Klik **Deploy Your Army** untuk memulai; klik **Run It Back** atau tekan `R` setelah hasil untuk mengulang.
 
-## Fitur grafika dan interaksi
+## Graphics Features dan Interaction
 
 - Scene Three.js dengan perspektif third-person, jalur, environment reruntuhan prosedural, kabut, starfield, dan fog.
 - Model prajurit low-poly **GLTF buatan project** dengan struktur parent-child. Material pasukan berubah secara PBR untuk Fire, Water transparan, dan Electric emissive.
@@ -57,6 +57,27 @@ Battle menampilkan musuh yang muncul dari portal, serangan energi bolak-balik an
 - Rute sepanjang sekitar 260 unit dengan sebelas hazard, dua wave battle, lalu boss final.
 - Animasi lari unit, portal/gate pulse, pylon, boss, dan particle system untuk fire sparks, water bubbles, electric arcs, serta shockwave saat gate/battle.
 - Minimal dua lampu, shadow map, object yang cast shadow, surface yang receive shadow, HUD progress dan objective, battle health feedback, win/lose state, dan reset.
+
+## Struktur project
+
+```text
+Praktikum-UTS/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # Deploy otomatis ke GitHub Pages
+├── assets/
+│   ├── build-ember-captain.ps1 # Generator model karakter
+│   ├── ember-captain.bin    # Data geometri model GLTF
+│   ├── ember-captain.gltf   # Model karakter
+│   └── favicon.svg
+├── screenshots/
+│   └── screenshot.png       # Screenshot scene dan layar awal
+├── .nojekyll
+├── index.html               # Struktur halaman, HUD, dan layar game
+├── main.js                  # Scene Three.js, gameplay, animasi, dan VFX
+├── style.css                # Tampilan UI dan layout responsif
+└── README.md
+```
 
 ## Cara menjalankan
 
@@ -85,7 +106,12 @@ Workflow `.github/workflows/deploy.yml` otomatis mengunggah folder `Praktikum-UT
 - Menyeimbangkan gate jumlah/elemen, hazard collision, kekuatan Shadow Guard, dan syarat boss agar pilihan rute berpengaruh.
 - Memvisualisasikan hingga 24 karakter dari satu asset GLTF tanpa flocking, sambil menjaga animasi dan perubahan elemen tetap sinkron.
 
-## Asset credits
+## Pembagian kontribusi
+
+- **Mario Napitupulu:** komposisi scene dan environment prosedural, pembuatan gate, crowd formation, model karakter GLTF dan generator-nya, serta kontribusi pada HUD.
+- **Nathanael Oliver Amadhika Yuswana:** gameplay dan state permainan, interaksi gate dan hazard, battle serta boss, elemental VFX, HUD, serta kontribusi pada scene dan environment.
+
+## Asset Credits
 
 - `assets/ember-captain.gltf` dan `assets/ember-captain.bin`: model low-poly karakter orisinal yang dibangun secara prosedural oleh project; generator-nya ada di `assets/build-ember-captain.ps1`. Tidak ada asset gambar/model eksternal.
 - Three.js 0.169.0 dan GLTFLoader: [Three.js](https://github.com/mrdoob/three.js), lisensi MIT; dimuat dari jsDelivr CDN.
