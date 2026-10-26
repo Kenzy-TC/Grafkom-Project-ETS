@@ -222,6 +222,33 @@ function seedWorld() {
       trackObjects.push({ object: ruin, ruin: true, phase: random() * 6 });
     }
   }
+  // Procedural cyberpunk skyline frames both sides of the route.
+  const cityMats = [0x111a2a, 0x17152d, 0x10212c].map((color) => new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .38, emissive: color, emissiveIntensity: .16 }));
+  const buildingGeo = new THREE.BoxGeometry(1, 1, 1), windowGeo = new THREE.BoxGeometry(.11, .24, .035);
+  const cyanWindows = new THREE.InstancedMesh(windowGeo, new THREE.MeshBasicMaterial({ color: 0x34eaff }), 900);
+  const pinkWindows = new THREE.InstancedMesh(windowGeo, new THREE.MeshBasicMaterial({ color: 0xff39bd }), 900);
+  cyanWindows.count = 0;
+  pinkWindows.count = 0;
+  const windowDummy = new THREE.Object3D();
+  for (let i = 0; i < 64; i++) {
+    const side = i % 2 === 0 ? -1 : 1, z = 22 - Math.floor(i / 2) * 5.2;
+    const x = side * (15 + random() * 13), width = 3.2 + random() * 5.2;
+    const depth = 3 + random() * 5, height = 8 + random() * 23;
+    const building = new THREE.Mesh(buildingGeo, cityMats[i % cityMats.length]);
+    building.position.set(x, height / 2 - .45, z); building.scale.set(width, height, depth);
+    building.receiveShadow = true; world.add(building);
+    const faceZ = z + (side < 0 ? depth / 2 + .025 : -depth / 2 - .025);
+    const cols = Math.max(2, Math.floor(width / .72)), rows = Math.max(3, Math.floor(height / 1.35));
+    for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
+      if (random() < .32) continue;
+      windowDummy.position.set(x - width * .38 + col * (width * .76 / Math.max(1, cols - 1)), .5 + row * (height * .82 / rows), faceZ);
+      windowDummy.updateMatrix();
+      const instances = random() < .72 ? cyanWindows : pinkWindows;
+      if (instances.count < instances.instanceMatrix.count) instances.setMatrixAt(instances.count++, windowDummy.matrix);
+    }
+  }
+  cyanWindows.instanceMatrix.needsUpdate = true; pinkWindows.instanceMatrix.needsUpdate = true;
+  world.add(cyanWindows, pinkWindows);
   const stars = new Float32Array(360 * 3);
   for (let i = 0; i < 360; i++) {
     stars[i * 3] = (random() - .5) * 210;
@@ -578,6 +605,7 @@ function selectGate(config) {
 }
 
 function applyGate(config) {
+  if (config.resolved || gateRecords.some((gate) => gate.route === config.route && gate.resolved)) return;
   for (const sibling of gateRecords) if (sibling.route === config.route) sibling.resolved = true;
   game.selectedGate = null;
   if (config.type === 'fireRecruit') {

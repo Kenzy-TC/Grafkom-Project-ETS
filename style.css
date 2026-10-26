@@ -156,3 +156,103 @@ h1 em, .end-card h2 em { color: #ff9660; font-style: normal; }
 @media (max-height: 590px) {
   .topbar { height: 76px; padding-block: 10px; }.mission-card, .stage-tag { top: 91px; }.bottom-hud { bottom: 12px; }.start-card { transform: scale(.86); }.start-coordinate, .start-stamp { bottom: 65px; }
 }
+/* Start screen polish */
+.screen-start {
+  background: rgba(5, 12, 20, .28);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+.start-card {
+  width: min(520px, calc(100vw - 36px));
+  padding: 28px 36px 22px;
+  border: 1px solid rgba(196, 225, 230, .17);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(13, 24, 34, .94), rgba(8, 15, 23, .92));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .48), inset 0 1px rgba(255, 255, 255, .045);
+  clip-path: none;
+}
+.start-card::before { width: 64px; }
+.start-topline { font-size: 10px; letter-spacing: .14em; }
+.title-overline { margin-top: 28px; font-size: 11px; letter-spacing: .17em; }
+h1 { margin: 10px 0 12px; font-size: clamp(54px, 7vw, 76px); line-height: .86; letter-spacing: .005em; }
+.start-description { max-width: 390px; margin: 18px 0 22px; color: #c0cbd0; font-size: 14px; line-height: 1.65; }
+.start-facts { gap: 12px; padding: 15px 0 16px; }
+.start-facts span { font-size: 9px; letter-spacing: .1em; }
+.start-facts strong { font-size: 17px; }
+.start-facts strong i { font-size: 9px; }
+.start-facts strong.threat { font-size: 14px; }
+.primary-button { height: 52px; margin-top: 19px; padding-inline: 18px; border-radius: 5px; font-size: 15px; letter-spacing: .12em; }
+.controls-note { margin-top: 14px; font-size: 9px; letter-spacing: .04em; }
+.controls-note kbd { min-width: 19px; height: 19px; font-size: 9px; }
+.start-footer { margin-top: 22px; padding-top: 13px; font-size: 8px; }
+@media (max-width: 620px) {
+  .start-card { width: calc(100vw - 30px); padding: 22px 20px 18px; border-radius: 10px; }
+  .start-topline { font-size: 8px; }
+  .title-overline { margin-top: 21px; font-size: 9px; }
+  h1 { font-size: clamp(48px, 12vw, 66px); }
+  .start-description { font-size: 12px; margin: 14px 0 17px; }
+  .start-facts { gap: 6px; }
+  .start-facts span { font-size: 7px; }
+  .start-facts strong { font-size: 13px; }
+  .start-facts strong.threat { font-size: 11px; }
+  .controls-note { white-space: normal; line-height: 1.8; font-size: 7px; }
+}
+
+
+
+/* Cyberpunk finish screen and shared action buttons */
+:root {
+  --cyber-cyan: #53f6ff;
+  --cyber-pink: #ff3cac;
+  --cyber-violet: #8b5cf6;
+}
+.screen-end {
+  background: rgba(5, 4, 18, .34);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+.end-card {
+  width: min(500px, calc(100vw - 36px));
+  padding: 32px 36px 25px;
+  border: 1px solid rgba(83, 246, 255, .32);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(16, 13, 35, .96), rgba(8, 10, 25, .95));
+  box-shadow: 0 24px 90px rgba(0, 0, 0, .55), 0 0 36px rgba(139, 92, 246, .13), inset 0 1px rgba(255, 255, 255, .05);
+  clip-path: none;
+}
+.end-card::before {
+  width: 72px;
+  background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-pink));
+  box-shadow: 0 0 16px rgba(83, 246, 255, .75);
+}
+.end-card > .eyebrow { color: var(--cyber-cyan); font-size: 10px; }
+.end-card h2 { margin-top: 13px; }
+.end-card h2 em { color: var(--cyber-pink); text-shadow: 0 0 18px rgba(255, 60, 172, .25); }
+.end-card > p { max-width: 390px; color: #c4c5dc; font-size: 14px; line-height: 1.65; }
+.end-stats { gap: 48px; padding: 16px 0; border-color: rgba(83, 246, 255, .2); }
+.end-stats span { color: #a3a4bd; font-size: 9px; }
+.end-stats strong { color: #f4f2ff; font-size: 22px; }
+.end-footnote { color: #a19abf; font-size: 8px; }
+.primary-button {
+  color: #090817;
+  background: linear-gradient(100deg, var(--cyber-cyan), #9dfff1 52%, #ff73ce);
+  font-family: var(--body);
+  font-weight: 500;
+  letter-spacing: .1em;
+  box-shadow: 0 0 24px rgba(83, 246, 255, .2), 0 0 28px rgba(255, 60, 172, .12);
+}
+.primary-button:hover {
+  box-shadow: 0 0 32px rgba(83, 246, 255, .32), 0 0 36px rgba(255, 60, 172, .22);
+}
+.primary-button span { font-weight: 500; }
+@media (max-width: 620px) {
+  .end-card { width: calc(100vw - 30px); padding: 24px 20px 19px; border-radius: 10px; }
+  .end-card > p { font-size: 12px; }
+  .end-stats { gap: 28px; }
+}
+
+
+
+/* Restore bold action labels in the cyberpunk theme. */
+.primary-button { font-weight: 700; }
+.primary-button span { font-weight: 700; }
