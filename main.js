@@ -59,7 +59,7 @@ const cyanFill = new THREE.PointLight(0x00f0ff, 32, 30, 2);
 cyanFill.position.set(5, 5, -14);
 scene.add(cyanFill);
 
-// Bloom makes every emissive surface above the threshold glow like a neon tube.
+// Bloom membuat permukaan emissive tampak menyala seperti neon.
 let composer = null;
 try {
   const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.HalfFloatType, samples: 4 });
@@ -176,7 +176,7 @@ function createGlowTexture() {
 }
 const glowTexture = createGlowTexture();
 
-// Canvas textures that contain text are repainted once the web fonts have loaded.
+// Gambar pada tekstur canvas diperbarui setelah font web selesai dimuat.
 const redrawables = [];
 function makeCanvasTexture(width, height, draw) {
   const c = document.createElement('canvas');
@@ -228,7 +228,7 @@ function createRiftTexture() {
 }
 const riftTexture = createRiftTexture();
 
-// ===== Cyberpunk city ======================================================
+// ===== Kota cyberpunk ======================================================
 const NEON = { cyan: 0x00f0ff, pink: 0xff2bd6, yellow: 0xfcee0a, violet: 0x8a3dff, red: 0xff2a52, orange: 0xff5a36 };
 const hdr = (hex, k = 1) => new THREE.Color(hex).multiplyScalar(k);
 
@@ -302,8 +302,8 @@ function createSkyTexture() {
   return texture;
 }
 
-// Small studio of coloured light panels baked into an environment map so every
-// metallic surface (road, gates, units) picks up pink / cyan neon reflections.
+// Panel cahaya berwarna ini menjadi peta lingkungan untuk memberi pantulan neon
+// magenta dan cyan pada permukaan logam seperti jalan, gate, dan pasukan.
 let neonEnvTexture = null;
 function buildNeonEnvironment() {
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -336,7 +336,7 @@ function buildGroundAndRoad() {
   floor.receiveShadow = true;
   world.add(floor);
 
-  // Wet asphalt: low roughness so the neon point lights leave long highlights on it.
+  // Aspal basah memakai roughness rendah agar cahaya neon membentuk pantulan panjang.
   const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f0c1f, roughness: .34, metalness: .55 });
   addMesh(world, new THREE.BoxGeometry(roadWidth, .38, roadLength), roadMat, [0, -.22, roadMid], null, false, true);
 
@@ -345,7 +345,7 @@ function buildGroundAndRoad() {
   addMesh(world, walkGeo, walkMat, [-roadWidth / 2 - 2.7, -.08, roadMid], null, false, true);
   addMesh(world, walkGeo, walkMat, [roadWidth / 2 + 2.7, -.08, roadMid], null, false, true);
 
-  // Curb neon: magenta on the left, cyan on the right.
+  // Neon trotoar berwarna magenta di kiri dan cyan di kanan.
   const edgeGeo = new THREE.BoxGeometry(.1, .05, roadLength);
   addMesh(world, edgeGeo, new THREE.MeshBasicMaterial({ color: hdr(NEON.pink, 2.4), toneMapped: false }), [-roadWidth / 2, -.02, roadMid], null, false, false);
   addMesh(world, edgeGeo, new THREE.MeshBasicMaterial({ color: hdr(NEON.cyan, 2.4), toneMapped: false }), [roadWidth / 2, -.02, roadMid], null, false, false);
@@ -355,7 +355,7 @@ function buildGroundAndRoad() {
   addMesh(world, seamGeo, seamMat, [-roadWidth / 2 + .45, -.012, roadMid], null, false, false);
   addMesh(world, seamGeo, seamMat, [roadWidth / 2 - .45, -.012, roadMid], null, false, false);
 
-  // Lane dividers sit between the three lanes (x = -2.45, 0, 2.45).
+  // Pembatas berada di antara tiga jalur (x = -2.45, 0, 2.45).
   const dashGeo = new THREE.BoxGeometry(.07, .02, 1.2);
   const dashMat = new THREE.MeshBasicMaterial({ color: hdr(NEON.cyan, 1.5), toneMapped: false });
   for (let z = 7; z > -292; z -= 3.4) {
@@ -389,14 +389,14 @@ function buildCity() {
 
   const specs = [];
   for (const side of [-1, 1]) {
-    // Near row: street-level towers hugging the sidewalk.
+    // Barisan dekat berisi gedung-gedung di tepi jalan.
     let z = 26;
     while (z > -278) {
       const d = 5 + random() * 4, w = 6 + random() * 5, h = 12 + random() * 26;
       specs.push({ side, row: 0, x: side * (12.4 + w / 2), z: z - d / 2, w, d, h });
       z -= d + .5 + random() * 1.6;
     }
-    // Far row: mega-towers that fill the skyline behind.
+    // Barisan jauh berisi gedung tinggi yang memenuhi cakrawala.
     z = 30;
     while (z > -286) {
       const d = 8 + random() * 6, w = 9 + random() * 8, h = 32 + random() * 46;
@@ -442,8 +442,8 @@ function buildCity() {
 
     const theme = themes[Math.floor(random() * themes.length)];
     const accent = accents[Math.floor(random() * accents.length)];
-    const faceX = s.x - s.side * s.w / 2;   // wall that faces the road
-    const normalSign = -s.side;             // +1 for left-hand buildings, -1 for right-hand ones
+    const faceX = s.x - s.side * s.w / 2;   // Sisi dinding yang menghadap jalan.
+    const normalSign = -s.side;             // +1 untuk gedung kiri, -1 untuk gedung kanan.
 
     const cols = Math.max(2, Math.floor((s.d - .9) / .95));
     const rows = Math.max(3, Math.floor((s.h - 2) / 1.35));
@@ -521,7 +521,7 @@ function buildStreetLights() {
 
 }
 
-// A huge neon ring at the end of the road: the Rift itself.
+// Cincin neon besar di ujung jalan menjadi portal Rift.
 function buildRiftMegastructure() {
   const rift = new THREE.Group();
   rift.position.set(0, 0, -282);
@@ -647,9 +647,9 @@ function makeGateTexture(title, subtitle, color) {
   });
 }
 
-// Lane centres are +-GATE_LANE_X. A gate only counts when the army's centre is inside its own
-// opening (the frame's posts sit at +-1.08, so the clear opening is roughly +-1.0). The zones of
-// the two gates never overlap, and the centre lane touches neither.
+// Posisi tengah jalur ada di +-GATE_LANE_X. Gate hanya terpilih jika pusat pasukan
+// masuk ke bukaannya sendiri. Tiang berada di +-1.08, jadi lebar bukaan sekitar +-1.0.
+// Area dua gate tidak saling tumpang tindih dan tidak mencakup jalur tengah.
 const GATE_LANE_X = 2.45;
 const GATE_HIT_HALF_WIDTH = 1.0;
 
@@ -685,7 +685,7 @@ function createGate(config) {
   group.add(target);
   gateTargets.push(target);
   const pad = addMesh(group, new THREE.BoxGeometry(2.55, .06, 1.85), new THREE.MeshStandardMaterial({ color: 0x120c26, metalness: .75, roughness: .38, emissive: color, emissiveIntensity: .8 }), [0, -.04, 0]);
-  // Floor glow that shows the real pickup zone: the army must be inside it (|dx| <= GATE_HIT_HALF_WIDTH).
+  // Cahaya lantai menandai area pengambilan: pusat pasukan harus berada di dalamnya.
   const hitZoneMaterial = new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(1.4), transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const hitZone = new THREE.Mesh(new THREE.PlaneGeometry(GATE_HIT_HALF_WIDTH * 2, 1.85), hitZoneMaterial);
   hitZone.rotation.x = -Math.PI / 2;
@@ -928,7 +928,7 @@ function addCyberpunkArmor(model, variant, glowColor) {
     return mesh;
   };
 
-  // Rebuild the read of the body with layered, angular plates and an illuminated visor.
+  // Bentuk tubuh dibuat dari lapisan pelat bersudut dan visor yang menyala.
   detail(new THREE.IcosahedronGeometry(.36, 0), plate, [0, 1.17, .235], [.95, .94, .5]);
   detail(new THREE.BoxGeometry(.46, .095, .045), neon, [0, 1.72, .24], [1, 1, 1]);
   detail(new THREE.BoxGeometry(.3, .055, .05), armor, [0, 1.61, .255]);
@@ -976,7 +976,7 @@ function makeUnit() {
   const unitIndex = game.visualUnits.length;
   const armorGlow = [0x00f0ff, 0xff2bd6, 0xfcee0a, 0x8a3dff][unitIndex % 4];
   addCyberpunkArmor(unit.group, unitIndex, armorGlow);
-  // Small, readable silhouette changes keep the formation from looking cloned.
+  // Variasi bentuk kecil membuat tiap unit tidak terlihat persis sama.
   const accentColors = [0x00f0ff, 0xff2bd6, 0xfcee0a, 0x8a3dff];
   const accent = new THREE.MeshStandardMaterial({ color: accentColors[game.visualUnits.length % accentColors.length], emissive: accentColors[game.visualUnits.length % accentColors.length], emissiveIntensity: 1.35, metalness: .55, roughness: .24 });
   const variant = game.visualUnits.length % 4;
@@ -1100,7 +1100,7 @@ function createBoss() {
   addMesh(boss, new THREE.CylinderGeometry(.7, 1.12, 2.15, 8), darkMetal, [0, 1.52, 0]);
   addMesh(boss, new THREE.SphereGeometry(.76, 10, 8), shellMat, [0, 2.92, 0]);
   addMesh(boss, new THREE.TorusGeometry(.5, .16, 7, 9), shellMat, [0, 3.72, 0]);
-  // Crown blades and a layered chest plate give the Warden a stronger boss silhouette.
+  // Bilah mahkota dan pelat dada berlapis memberi Warden siluet boss yang khas.
   for (let i = 0; i < 5; i++) {
     const angle = (i / 4 - .5) * 1.3;
     const blade = addMesh(boss, new THREE.ConeGeometry(.2, .85, 5), shellMat, [Math.sin(angle) * .72, 3.26 + Math.cos(angle) * .1, -.02]);
@@ -1144,7 +1144,7 @@ function createEnemyFormation() {
     addCyberpunkArmor(unit.group, i + 1, i % 2 ? 0xff315c : 0xff8a36);
     const armor = new THREE.MeshStandardMaterial({ color: 0x35152d, metalness: .82, roughness: .2, emissive: 0xff164f, emissiveIntensity: .95 });
     const trim = new THREE.MeshBasicMaterial({ color: i % 2 ? 0xff4b86 : 0xffa343, toneMapped: false });
-    // Alternate raider helmets, shoulder spikes, and shields across the ranks.
+    // Helm, duri bahu, dan perisai raider dibuat bergantian di tiap barisan.
     if (i % 3 === 0) {
       const helm = addMesh(unit.group, new THREE.ConeGeometry(.3, .62, 5), armor, [0, 1.98, 0]);
       helm.rotation.x = -.18;
@@ -1440,10 +1440,9 @@ function updateFx(dt) {
   }
 }
 
-// A gate is only collected when the army's centre is inside that gate's own opening.
-// Previously this fell back to "nearest gate" (and honoured a clicked lock even if the army was
-// in another lane), so a player in the middle lane, or still sliding between lanes, could grab a
-// power-up from the lane next door.
+// Gate hanya terambil jika pusat pasukan masuk ke bukaan gate tersebut.
+// Pemilihan berdasarkan gate terdekat bisa mengambil gate dari jalur sebelah,
+// termasuk saat pasukan masih berpindah jalur. Pemeriksaan ini mencegah hal itu.
 function chooseGate(routeId) {
   return gateRecords.find((gate) => gate.route === routeId && !gate.resolved && Math.abs(game.playerX - gate.side * GATE_LANE_X) <= GATE_HIT_HALF_WIDTH) || null;
 }
@@ -1468,7 +1467,7 @@ function openEnemyPortal(z, radius, color, isBoss = false) {
   disc.userData.portalBaseOpacity = .7;
   portal.add(disc);
 
-  // A second luminous layer and a compact core create the impression of a deep opening.
+  // Lapisan cahaya dan inti kecil membuat portal terlihat memiliki kedalaman.
   const innerMat = new THREE.MeshBasicMaterial({
     map: riftTexture, color: hdr(NEON.violet, 1.8), transparent: true, opacity: .48,
     side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
